@@ -2,5 +2,6 @@
 	"workbench.editorAssociations": {
 		"*.zip": "default",
 		"file:/**/*.csv": "jupyter-data-wrangler"
-	}
+	},
+	"python.analysis.typeCheckingMode": "standard"
 }
