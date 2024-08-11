@@ -1,3 +1,4 @@
 logs.log
 data/*csv
 cache/
+**/__pycache__
