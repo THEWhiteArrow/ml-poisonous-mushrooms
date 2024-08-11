@@ -35,7 +35,7 @@ class ProcessingPipelineWrapper:
     """A memory caching of pipeline."""
 
     def create_pipeline(
-        self, force_numerical: bool = True, model: Optional[BaseEstimator] = None
+        self, allow_strings: bool = True, model: Optional[BaseEstimator] = None
     ) -> Pipeline:
         """A function that is to automate the process of processing the data so that it is ready to be trained on made the prediction.
 
@@ -52,7 +52,7 @@ class ProcessingPipelineWrapper:
             ("scaler", StandardScaler(), self.numerical_columns),
         ]
 
-        if force_numerical is True:
+        if allow_strings is False:
             transformers.append(
                 (
                     "encoder",

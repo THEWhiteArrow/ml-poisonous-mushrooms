@@ -1,20 +1,65 @@
+from typing import Any, Callable, Dict, List, Literal, Optional
 from dataclasses import dataclass, asdict
 import pickle
-from typing import List, Literal
+import optuna
 from sklearn.base import BaseEstimator
-from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestClassifier
-from sklearn.linear_model import LogisticRegression, Ridge, RidgeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import RidgeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-from xgboost import XGBClassifier, XGBRegressor
 from features import FeatureCombination, FeatureManager
 
 
 @dataclass
-class HyperOptModelCombination:
+class ModelWrapper:
     model: BaseEstimator
+    allow_strings: bool
+    get_params: Callable[[optuna.Trial], Dict[str, Any]]
+
+
+@dataclass
+class ModelManager:
+    task: Literal["classification"]
+
+    def get_model_wrappers(self) -> List[ModelWrapper]:
+        # --- TODO ---
+        # Add more taks types and specify the params optimization
+        if self.task == "classification":
+            return [
+                ModelWrapper(
+                    model=RidgeClassifier(),
+                    allow_strings=False,
+                    get_params=lambda x: {},
+                ),
+                ModelWrapper(
+                    model=RandomForestClassifier(),
+                    allow_strings=True,
+                    get_params=lambda x: {},
+                ),
+                ModelWrapper(
+                    model=KNeighborsClassifier(),
+                    allow_strings=True,
+                    get_params=lambda x: {},
+                ),
+                ModelWrapper(
+                    model=SVC(),
+                    allow_strings=True,
+                    get_params=lambda x: {},
+                ),
+            ]
+        else:
+            raise ValueError(
+                "Bro. You had one job of selecting a proper task name and you failed..."
+            )
+
+
+@dataclass
+class HyperOptModelCombination:
+    model_wrapper: ModelWrapper
     name: str
     feature_combination: FeatureCombination
+    score: Optional[float] = None
+    hyper_parameters: Optional[Dict[str, Any]] = None
 
     def pickle(self, path: str = "./") -> None:
         # Open the file in write-binary mode
@@ -35,45 +80,21 @@ class HyperOptModelCombination:
 @dataclass
 class HyperOptManager:
     feature_manager: FeatureManager
-    models: List[BaseEstimator]
+    model_wrappers: List[ModelWrapper]
 
-    def get_all_model_combinations(self) -> List[HyperOptModelCombination]:
+    def get_model_combinations(self) -> List[HyperOptModelCombination]:
         all_feature_combinations: List[FeatureCombination] = (
             self.feature_manager.get_all_possible_feature_combinations()
         )
 
         hyper_opt_model_combinations: List[HyperOptModelCombination] = [
             HyperOptModelCombination(
-                model=model,
-                name=model.__class__.__name__,
+                model_wrapper=model_wrapper,
+                name=model_wrapper.model.__class__.__name__,
                 feature_combination=combination,
             )
-            for model in self.models
+            for model_wrapper in self.model_wrappers
             for combination in all_feature_combinations
         ]
 
         return hyper_opt_model_combinations
-
-
-def get_models(task: Literal["regression", "classification"]) -> List[BaseEstimator]:
-    if task == "regression":
-        return [
-            LogisticRegression(),
-            Ridge(),
-            # LightGBM(),
-            HistGradientBoostingRegressor(),
-            XGBRegressor(),
-        ]
-    elif task == "classification":
-        return [
-            RidgeClassifier(),
-            # LightGBMClassifier(),
-            XGBClassifier(),
-            RandomForestClassifier(),
-            KNeighborsClassifier(),
-            SVC(),
-        ]
-    else:
-        raise ValueError(
-            "Bro. You had one job of selecting a proper task name and you failed..."
-        )
