@@ -56,7 +56,11 @@ class ProcessingPipelineWrapper:
             transformers.append(
                 (
                     "encoder",
-                    OneHotEncoder(drop="first", handle_unknown="infrequent_if_exist"),
+                    OneHotEncoder(
+                        drop="first",
+                        handle_unknown="infrequent_if_exist",
+                        sparse_output=False,
+                    ),
                     self.categorical_columns,
                 )
             )

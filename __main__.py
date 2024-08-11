@@ -18,7 +18,7 @@ def create_objective(
     data: pd.DataFrame, model_combination: HyperOptModelCombination
 ) -> Callable[[optuna.Trial], float]:
 
-    data = data.copy().set_index("id")
+    data = data.copy()
 
     X = data.drop(columns=["class"])
     y = data["class"]
@@ -30,13 +30,13 @@ def create_objective(
     )
     model_wrapper = model_combination.model_wrapper
     model = model_wrapper.model
+    allow_strings = model_wrapper.allow_strings
 
     def objective(
         trail: optuna.Trial,
     ) -> float:
 
         params = model_wrapper.get_params(trail)
-        allow_strings = model_wrapper.allow_strings
 
         model.set_params(params=params)
 
@@ -59,7 +59,7 @@ def main():
     logger.info("Starting main...")
     train, test = load_data()
 
-    engineered_data = engineer_features(train.head(10 * 1000))
+    engineered_data = engineer_features(train.head(10 * 1000)).set_index("id")
 
     feature_manager = FeatureManager(
         feature_sets=[
@@ -118,6 +118,8 @@ def main():
             direction="minimize", study_name=f"optuna_{model_combination.name}"
         )
 
+        # --- TODO ---
+        # Fix filtering data
         study.optimize(
             func=create_objective(
                 data=engineered_data[model_combination.feature_combination.features],
@@ -139,5 +141,85 @@ def main():
 
 
 if __name__ == "__main__":
-    logger.info("Running main...")
-    main()
+    # main()
+
+    logger.info("Loading data...")
+    train, test = load_data()
+
+    logger.info("Engineering data...")
+    engineered_data = engineer_features(train.head(10 * 1000)).set_index("id")
+
+    feature_manager = FeatureManager(
+        feature_sets=[
+            FeatureSet(
+                name="stem",
+                is_optional=False,
+                features=[
+                    "stem-height",
+                    "stem-width",
+                    "stem-root",
+                    "stem-surface",
+                    "stem-color",
+                ],
+            ),
+            FeatureSet(
+                name="cap",
+                is_optional=True,
+                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
+            ),
+            FeatureSet(
+                name="gill",
+                is_optional=True,
+                features=["gill-spacing", "gill-attachment", "gill-color"],
+            ),
+            FeatureSet(
+                name="veil", is_optional=True, features=["veil-type", "veil-color"]
+            ),
+            FeatureSet(
+                name="ring", is_optional=True, features=["has-ring", "ring-type"]
+            ),
+            FeatureSet(
+                name="other",
+                is_optional=True,
+                features=[
+                    "spore-print-color",
+                    "habitat",
+                    "season",
+                    "does-bruise-or-bleed",
+                ],
+            ),
+        ]
+    )
+    model_manager = ModelManager(task="classification")
+    hyper_manager = HyperOptManager(
+        feature_manager=feature_manager,
+        model_wrappers=model_manager.get_model_wrappers(),
+    )
+
+    all_model_combinations = hyper_manager.get_model_combinations()
+
+    choosen_combination = all_model_combinations[13]
+    logger.info(choosen_combination.name)
+
+    X = engineered_data.copy()[choosen_combination.feature_combination.features]
+    y = engineered_data.copy()["class"]
+
+    numerical_features, categorical_features = separate_column_types(X)
+
+    processing_pipeline_wrapper = ProcessingPipelineWrapper(
+        numerical_columns=numerical_features, categorical_columns=categorical_features
+    )
+    model_wrapper = choosen_combination.model_wrapper
+    model = model_wrapper.model
+    allow_strings = model_wrapper.allow_strings
+
+    logger.info(f"The model {model.__class__.__name__} {"allows strings" if allow_strings is True else "does NOT allow strings"}")
+    pipeline = processing_pipeline_wrapper.create_pipeline(
+        model=None, allow_strings=allow_strings
+    )
+
+    processed_X = pipeline.fit_transform(X=X.copy())
+    # --- TODO ---
+    # The data that is processed includes the imputer fields and scaled fields
+    # (it should impute the fields and them scaled them without creating new columns)
+    logger.info("Data has been processed")

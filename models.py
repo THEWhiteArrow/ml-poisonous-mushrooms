@@ -122,7 +122,7 @@ class HyperOptManager:
         hyper_opt_model_combinations: List[HyperOptModelCombination] = [
             HyperOptModelCombination(
                 model_wrapper=model_wrapper,
-                name=model_wrapper.model.__class__.__name__,
+                name=f"{model_wrapper.model.__class__.__name__}_{combination.name}",
                 feature_combination=combination,
             )
             for model_wrapper in self.model_wrappers
