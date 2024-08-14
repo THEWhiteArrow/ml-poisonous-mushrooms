@@ -1,6 +1,6 @@
 import json
 from typing import Callable
-
+from dataclasses import dataclass
 from joblib import Memory
 from logger import setup_logger
 import pandas as pd
@@ -14,7 +14,7 @@ from models import HyperOptManager, ModelManager, HyperOptModelCombination
 from pipelines import separate_column_types, ProcessingPipelineWrapper
 
 logger = setup_logger()
-N_OPTIMIZE_TRIALS: int = 10
+N_OPTIMIZE_TRIALS: int = 25
 N_CV: int = 5
 START_ITERATION : int = 0
 
@@ -59,6 +59,29 @@ def create_objective(
         return avg_acc
 
     return objective
+
+
+@dataclass
+class EarlyStoppingCallback:
+    def __init__(self, patience: int):
+        self.patience = patience
+        self.best_value = None
+        self.no_improvement_count = 0
+
+    def __call__(self, study: optuna.Study, trial: optuna.Trial):
+        # Get the current best value
+        current_best_value = study.best_value
+
+        # Check if the best value has improved
+        if self.best_value is None or current_best_value > self.best_value:
+            self.best_value = current_best_value
+            self.no_improvement_count = 0
+        else:
+            self.no_improvement_count += 1
+
+        # Stop study if there has been no improvement for `self.patience` trials
+        if self.no_improvement_count >= self.patience:
+            study.stop()
 
 
 def hyper_opt():
@@ -129,6 +152,8 @@ def hyper_opt():
 
         logger.info(f"Training {i} iteration")
 
+        early_stopping = EarlyStoppingCallback(patience=10)
+
         study = optuna.create_study(
             direction="maximize", study_name=f"optuna_{model_combination.name}"
         )
@@ -139,6 +164,7 @@ def hyper_opt():
                 model_combination=model_combination,
             ),
             n_trials=N_OPTIMIZE_TRIALS,
+            callbacks=[early_stopping],  # type: ignore
         )
 
         best_params = study.best_params
