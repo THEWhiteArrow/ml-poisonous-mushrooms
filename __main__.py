@@ -1,5 +1,7 @@
 import json
 from typing import Callable
+
+from joblib import Memory
 from logger import setup_logger
 import pandas as pd
 import optuna
@@ -29,7 +31,8 @@ def create_objective(
     numerical_features, categorical_features = separate_column_types(X)
 
     processing_pipeline_wrapper = ProcessingPipelineWrapper(
-        numerical_columns=numerical_features, categorical_columns=categorical_features
+        numerical_columns=numerical_features, categorical_columns=categorical_features, 
+        memory=Memory(location=f"./cache/processing/{model_combination.name}", verbose=0),
     )
     model_wrapper = model_combination.model_wrapper
     model = model_wrapper.model
@@ -62,7 +65,7 @@ def hyper_opt():
     logger.info("Starting main...")
     train, test = load_data()
 
-    engineered_data = engineer_features(train.head(1000 * 1000)).set_index("id")
+    engineered_data = engineer_features(train.head(1500 * 1000)).set_index("id")
     # engineered_data = engineer_features(train).set_index("id")
     logger.info(f"Training data has {len(engineered_data)} rows.")
     feature_manager = FeatureManager(
