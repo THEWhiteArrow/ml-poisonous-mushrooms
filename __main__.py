@@ -149,7 +149,7 @@ def hyper_opt():
 
         logger.info(f"Training {i} iteration")
 
-        early_stopping = EarlyStoppingCallback(patience=10)
+        early_stopping = EarlyStoppingCallback(patience=7)
 
         study = optuna.create_study(
             direction="maximize", study_name=f"optuna_{model_combination.name}"
