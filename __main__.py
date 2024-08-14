@@ -41,7 +41,7 @@ def create_objective(
 
         params = model_wrapper.get_params(trail)
 
-        model.set_params(params=params)
+        model.set_params(**params)
 
         pipeline = processing_pipeline_wrapper.create_pipeline(
             model=model,
