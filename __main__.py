@@ -115,10 +115,7 @@ def hyper_opt():
                 features=["gill-spacing", "gill-attachment", "gill-color"],
             ),
             FeatureSet(
-                name="veil", is_optional=True, features=["veil-type", "veil-color"]
-            ),
-            FeatureSet(
-                name="ring", is_optional=True, features=["has-ring", "ring-type"]
+                name="ring_and_veil", is_optional=True, features=["has-ring", "ring-type", "veil-type", "veil-color"]
             ),
             FeatureSet(
                 name="other",
