@@ -127,7 +127,7 @@ def hyper_opt():
         logger.info(f"Training {i} iteration")
 
         study = optuna.create_study(
-            direction="minimize", study_name=f"optuna_{model_combination.name}"
+            direction="maximize", study_name=f"optuna_{model_combination.name}"
         )
 
         study.optimize(
