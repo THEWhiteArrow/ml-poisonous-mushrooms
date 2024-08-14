@@ -1,7 +1,9 @@
+import json
 from typing import Callable
 from logger import setup_logger
 import pandas as pd
 import optuna
+import datetime as dt
 from sklearn.model_selection import cross_val_score
 from data_load import load_data
 from engineering_features import engineer_features
@@ -12,6 +14,7 @@ from pipelines import separate_column_types, ProcessingPipelineWrapper
 logger = setup_logger()
 N_OPTIMIZE_TRIALS: int = 10
 N_CV: int = 5
+START_ITERATION : int = 0
 
 
 def create_objective(
@@ -55,12 +58,13 @@ def create_objective(
     return objective
 
 
-def main():
+def hyper_opt():
     logger.info("Starting main...")
     train, test = load_data()
 
-    engineered_data = engineer_features(train.head(10 * 1000)).set_index("id")
-
+    engineered_data = engineer_features(train.head(1000 * 1000)).set_index("id")
+    # engineered_data = engineer_features(train).set_index("id")
+    logger.info(f"Training data has {len(engineered_data)} rows.")
     feature_manager = FeatureManager(
         feature_sets=[
             FeatureSet(
@@ -111,18 +115,24 @@ def main():
     )
 
     all_model_combinations = hyper_manager.get_model_combinations()
+    logger.info(f"Training {len(all_model_combinations)} combinations.")
+    cv_output_df = pd.DataFrame(data={
+        "combination": [], "accuracy": [], "params": []
+    })
 
-    for model_combination in all_model_combinations:
+    for i, model_combination in enumerate(all_model_combinations):
+        if i < START_ITERATION:
+            continue
+
+        logger.info(f"Training {i} iteration")
 
         study = optuna.create_study(
             direction="minimize", study_name=f"optuna_{model_combination.name}"
         )
 
-        # --- TODO ---
-        # Fix filtering data
         study.optimize(
             func=create_objective(
-                data=engineered_data[model_combination.feature_combination.features],
+                data=engineered_data[["class", *model_combination.feature_combination.features]],
                 model_combination=model_combination,
             ),
             n_trials=N_OPTIMIZE_TRIALS,
@@ -135,19 +145,30 @@ def main():
         model_combination.hyper_parameters = best_params
 
         logger.info(
-            f"Model combination: {model_combination.name} has scored: {best_score}"
+            f"Model combination: {model_combination.name} has scored: {best_score} with params: {best_params}"
         )
-        model_combination.pickle("./data/")
+
+        cv_output_df = pd.concat(
+            [
+                cv_output_df,
+                pd.DataFrame(data={
+                    "combination": model_combination.name,
+                    "accuracy": best_score,
+                    "params": json.dumps(best_params)
+                })
+            ]
+        )
+
+        # model_combination.pickle("./data/")
+    cv_output_df.to_csv(f"cv_output_df_{dt.datetime.now().isoformat()}.csv")
 
 
-if __name__ == "__main__":
-    # main()
-
+def debug():
     logger.info("Loading data...")
     train, test = load_data()
 
     logger.info("Engineering data...")
-    engineered_data = engineer_features(train.head(10 * 1000)).set_index("id")
+    engineered_data = engineer_features(train.head(10000 * 1000)).set_index("id")
 
     feature_manager = FeatureManager(
         feature_sets=[
@@ -211,15 +232,29 @@ if __name__ == "__main__":
     )
     model_wrapper = choosen_combination.model_wrapper
     model = model_wrapper.model
+
     allow_strings = model_wrapper.allow_strings
 
     logger.info(f"The model {model.__class__.__name__} {"allows strings" if allow_strings is True else "does NOT allow strings"}")
     pipeline = processing_pipeline_wrapper.create_pipeline(
-        model=None, allow_strings=allow_strings
+        model=model, allow_strings=allow_strings
     )
 
-    processed_X = pipeline.fit_transform(X=X.copy())
+    # processed_X = pipeline.fit_transform(X=X.copy())
+
+    scores = cross_val_score(
+        estimator=pipeline, X=X, y=y, cv=N_CV, scoring="accuracy"
+    )
+
+    logger.info(f"Accuracy scores: {scores}")
+    logger.info(f"Avg: {scores.mean()}")
+
     # --- TODO ---
     # The data that is processed includes the imputer fields and scaled fields
     # (it should impute the fields and them scaled them without creating new columns)
     logger.info("Data has been processed")
+
+
+if __name__ == "__main__":
+    hyper_opt()
+    # debug()
