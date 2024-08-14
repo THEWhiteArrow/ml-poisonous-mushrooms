@@ -1,12 +1,13 @@
 from dataclasses import dataclass
-import pandas as pd
-from typing import List, Tuple, Union, cast, Optional
+from typing import List, Sequence, Tuple, Union, cast, Optional
 from joblib import Memory
+import numpy as np
+import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.compose import ColumnTransformer
+from sklearn.compose import make_column_selector, ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import FeatureUnion, Pipeline, make_pipeline
 
 
 def separate_column_types(X: pd.DataFrame) -> Tuple[List[str], List[str]]:
@@ -47,27 +48,64 @@ class ProcessingPipelineWrapper:
             Pipeline: A processing pipeline.
         """
 
-        transformers: List[Tuple[str, BaseEstimator, List[str]]] = [
-            ("imputer", SimpleImputer(strategy="mean"), self.numerical_columns),
-            ("scaler", StandardScaler(), self.numerical_columns),
-        ]
+        # transformers: List[Tuple[str, BaseEstimator, List[str]]] = [
+        #     ("imputer", SimpleImputer(strategy="mean"), self.numerical_columns),
+        #     ("scaler", StandardScaler(), self.numerical_columns),
+        # ]
+
+        # if allow_strings is False:
+        #     transformers.append(
+        #         (
+        #             "encoder",
+        #             OneHotEncoder(
+        #                 drop="first",
+        #                 handle_unknown="infrequent_if_exist",
+        #                 sparse_output=False,
+        #             ),
+        #             self.categorical_columns,
+        #         )
+        #     )
+
+        # ct = ColumnTransformer(transformers=transformers, remainder="drop")
+
+        # steps: List[Tuple[str, BaseEstimator]] = [("transformer", ct)]
+
+        transformer_list: Sequence[Tuple[str, TransformerMixin | Pipeline]] = []
+
+        numerical_transformer = ColumnTransformer(
+            transformers=[
+                (
+                    "numerical_pipeline",
+                    make_pipeline(SimpleImputer(strategy="mean"), StandardScaler()),
+                    make_column_selector(dtype_include=np.number),  # type: ignore
+                )
+            ],
+            remainder="drop",
+        )
+
+        transformer_list.append(("numerical_transformer", numerical_transformer))
 
         if allow_strings is False:
-            transformers.append(
-                (
-                    "encoder",
-                    OneHotEncoder(
-                        drop="first",
-                        handle_unknown="infrequent_if_exist",
-                        sparse_output=False,
-                    ),
-                    self.categorical_columns,
-                )
+            string_transformer = ColumnTransformer(
+                transformers=[
+                    (
+                        "encoder",
+                        OneHotEncoder(
+                            drop="first",
+                            handle_unknown="infrequent_if_exist",
+                            sparse_output=False,
+                        ),
+                        make_column_selector(dtype_include=object),  # type: ignore
+                    )
+                ],
+                remainder="drop",
             )
 
-        ct = ColumnTransformer(transformers=transformers, remainder="drop")
+            transformer_list.append(("string_transformer", string_transformer))
 
-        steps: List[Tuple[str, BaseEstimator]] = [("transformer", ct)]
+        steps: List[Tuple[str, BaseEstimator]] = [
+            ("feature_union", FeatureUnion(transformer_list=transformer_list))
+        ]
 
         if model is not None:
             steps.append(("model", model))
