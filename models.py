@@ -30,7 +30,7 @@ class ModelManager:
                     model=RidgeClassifier(),
                     allow_strings=False,
                     get_params=lambda trial: {
-                        "alpha": trial.suggest_float("alpha", 1e-3, 100, log=True),
+                        "alpha": trial.suggest_float("alpha", 1e-3, 1000, log=True),
                         "tol": trial.suggest_float("tol", 1e-5, 1e-1, log=True),
                     },
                 ),

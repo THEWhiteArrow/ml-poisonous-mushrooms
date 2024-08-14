@@ -155,11 +155,13 @@ def hyper_opt():
             [
                 cv_output_df,
                 pd.DataFrame(data={
-                    "combination": model_combination.name,
-                    "accuracy": best_score,
-                    "params": json.dumps(best_params)
-                })
-            ]
+                    "combination": [model_combination.name],
+                    "accuracy": [best_score],
+                    "params": [json.dumps(best_params)]
+                }),
+            ],
+            axis=0,
+            ignore_index=True
         )
 
         # model_combination.pickle("./data/")
