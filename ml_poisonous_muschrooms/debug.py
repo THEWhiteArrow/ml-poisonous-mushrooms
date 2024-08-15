@@ -1,12 +1,15 @@
 
 
 from sklearn.model_selection import cross_val_score
-from data_load import load_data
-from engineering_features import engineer_features
-from features import FeatureManager, FeatureSet
-from logger import logger
-from models import HyperOptManager, ModelManager
-from pipelines import ProcessingPipelineWrapper
+from ml_poisonous_muschrooms.data_load.data_load import load_data
+from ml_poisonous_muschrooms.engineering.engineering_features import engineer_features
+from ml_poisonous_muschrooms.utils.features import FeatureManager, FeatureSet
+from ml_poisonous_muschrooms.utils.models import ModelManager
+from ml_poisonous_muschrooms.hyper_opt import HyperOptManager
+from ml_poisonous_muschrooms.utils.pipelines import ProcessingPipelineWrapper
+from ml_poisonous_muschrooms.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 def debug():
@@ -96,3 +99,6 @@ def debug():
     # (it should impute the fields and them scaled them without creating new columns)
     logger.info("Data has been processed")
 
+
+if __name__ == "__main__":
+    debug()

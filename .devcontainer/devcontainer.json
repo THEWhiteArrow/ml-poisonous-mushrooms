@@ -19,7 +19,6 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-toolsai.jupyter",
 				"naumovs.color-highlight",
 				"grapecity.gc-excelviewer",
 				"discretegames.f5anything",
@@ -29,15 +28,11 @@
 				"eamodio.gitlens",
 				"visualstudioexptteam.vscodeint",
 				"ms-python.isort",
-				"ms-toolsai.jupyter",
 				"esbenp.prettier-vscode",
 				"ms-python.vscode-pylance",
 				"ms-python.python",
 				"ms-python.debugpy",
 				"zeshuaro.vscode-python-poetry",
-				"ms-toolsai.jupyter-keymap",
-				"ms-toolsai.vscode-jupyter-cell-tags",
-				"ms-toolsai.vscode-jupyter-slideshow",
 				"mechatroner.rainbow-csv",
 				"ms-python.black-formatter",
 				"ms-vscode.makefile-tools",

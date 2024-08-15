@@ -1,7 +1,9 @@
 from dataclasses import dataclass
-import logging
 from typing import List
 import pandas as pd
+from ml_poisonous_muschrooms.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 @dataclass
@@ -31,7 +33,7 @@ class FeatureManager:
         diff_feats: List[str] = list(set(all_features) - set(columns))
 
         if len(diff_feats) > 0:
-            logging.warning(f"Missing features in the data: {diff_feats}")
+            logger.warning(f"Missing features in the data: {diff_feats}")
             return False
 
         return True
@@ -45,7 +47,7 @@ class FeatureManager:
         ]
 
         if len(optioanl_feature_sets) > 10:
-            logging.warning(
+            logger.warning(
                 f"The number of optional feature sets is high - {len(optioanl_feature_sets)}"
             )
 

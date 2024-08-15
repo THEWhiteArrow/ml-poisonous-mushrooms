@@ -1,8 +1,9 @@
 from typing import List, cast
 import pandas as pd
-from logger import setup_logger
+from ml_poisonous_muschrooms.logger import setup_logger
+from ml_poisonous_muschrooms.utils.pipelines import separate_column_types
 
-logger = setup_logger("cleaners")
+logger = setup_logger(__name__)
 
 
 def clean_categorical(X: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
@@ -44,3 +45,20 @@ def clean_categorical(X: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
         )
 
     return data
+
+
+def engineer_features(data: pd.DataFrame) -> pd.DataFrame:
+    """A function that engineers the features.
+
+    Args:
+        data (pd.DataFrame): Before engineered data.
+
+    Returns:
+        pd.DataFrame: After engineered data.
+    """
+    data = data.copy()
+    _, categorical_columns = separate_column_types(data)
+
+    cleaned_cat_data = clean_categorical(X=data, columns=categorical_columns)
+
+    return cleaned_cat_data
