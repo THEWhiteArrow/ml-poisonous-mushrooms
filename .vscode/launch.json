@@ -8,14 +8,14 @@
 			"name": "Hyper Opt",
 			"type": "debugpy",
 			"request": "launch",
-			"program": "${workspaceFolder}/ml_poisonous_muschrooms/hyper_opt.py",
+			"program": "${workspaceFolder}/ml_poisonous_mushrooms/hyper_opt.py",
 			"console": "internalConsole"
 		},
 		{
 			"name": "Debug",
 			"type": "debugpy",
 			"request": "launch",
-			"program": "${workspaceFolder}/ml_poisonous_muschrooms/debug.py",
+			"program": "${workspaceFolder}/ml_poisonous_mushrooms/debug.py",
 			"console": "internalConsole"
 		}
 	]
