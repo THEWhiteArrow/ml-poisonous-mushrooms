@@ -8,7 +8,7 @@ from sklearn.linear_model import RidgeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from lightgbm import LGBMClassifier
-from ml_poisonous_muschrooms.utils.features import FeatureCombination, FeatureManager
+from ml_poisonous_mushrooms.utils.features import FeatureCombination, FeatureManager
 
 
 def get_ridge_params(trial: optuna.Trial) -> Dict[str, Any]:

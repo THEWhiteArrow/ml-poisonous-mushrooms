@@ -6,16 +6,16 @@ import pandas as pd
 import optuna
 import datetime as dt
 from sklearn.model_selection import cross_val_score
-from ml_poisonous_muschrooms.data_load.data_load import load_data
-from ml_poisonous_muschrooms.logger import setup_logger
-from ml_poisonous_muschrooms.engineering.engineering_features import engineer_features
-from ml_poisonous_muschrooms.utils.features import FeatureManager, FeatureSet
-from ml_poisonous_muschrooms.utils.models import (
+from ml_poisonous_mushrooms.data_load.data_load import load_data
+from ml_poisonous_mushrooms.logger import setup_logger
+from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
+from ml_poisonous_mushrooms.utils.features import FeatureManager, FeatureSet
+from ml_poisonous_mushrooms.utils.models import (
     HyperOptManager,
     HyperOptModelCombination,
     ModelManager,
 )
-from ml_poisonous_muschrooms.utils.pipelines import (
+from ml_poisonous_mushrooms.utils.pipelines import (
     EarlyStoppingCallback,
     ProcessingPipelineWrapper,
 )

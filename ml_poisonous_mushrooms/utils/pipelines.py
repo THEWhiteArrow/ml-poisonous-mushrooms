@@ -9,7 +9,7 @@ from sklearn.compose import make_column_selector, ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.pipeline import FeatureUnion, Pipeline, make_pipeline
-from ml_poisonous_muschrooms.logger import setup_logger
+from ml_poisonous_mushrooms.logger import setup_logger
 
 logger = setup_logger(__name__)
 

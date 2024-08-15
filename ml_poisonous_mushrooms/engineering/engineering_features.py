@@ -1,7 +1,7 @@
 from typing import List, cast
 import pandas as pd
-from ml_poisonous_muschrooms.logger import setup_logger
-from ml_poisonous_muschrooms.utils.pipelines import separate_column_types
+from ml_poisonous_mushrooms.logger import setup_logger
+from ml_poisonous_mushrooms.utils.pipelines import separate_column_types
 
 logger = setup_logger(__name__)
 
@@ -20,7 +20,8 @@ def clean_categorical(X: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
     """
     data = X.copy()
     categorical_outliers_frequency_limit = 0.01
-    logger.info(f"Outliers frequency limit is {categorical_outliers_frequency_limit}")
+    logger.info(f"Outliers frequency limit is {
+                categorical_outliers_frequency_limit}")
 
     for column in columns:
         value_counts = data[column].value_counts().to_frame()
@@ -37,7 +38,8 @@ def clean_categorical(X: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
 
         data.loc[:, column] = (
             pd.Series(
-                data[column].apply(lambda el: el if el not in outliers else "nan")
+                data[column].apply(
+                    lambda el: el if el not in outliers else "nan")
             )
             .rename(column)
             .fillna("nan")

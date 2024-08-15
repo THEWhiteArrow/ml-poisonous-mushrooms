@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 import pandas as pd
-from ml_poisonous_muschrooms.logger import setup_logger
+from ml_poisonous_mushrooms.logger import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -48,7 +48,8 @@ class FeatureManager:
 
         if len(optioanl_feature_sets) > 10:
             logger.warning(
-                f"The number of optional feature sets is high - {len(optioanl_feature_sets)}"
+                f"The number of optional feature sets is high - {
+                    len(optioanl_feature_sets)}"
             )
 
         bitmap = 2 ** len(optioanl_feature_sets) - 1
@@ -68,7 +69,8 @@ class FeatureManager:
                     combination_features.extend(optional_set.features)
 
             possible_combinations.append(
-                FeatureCombination(name=combination_name, features=combination_features)
+                FeatureCombination(name=combination_name,
+                                   features=combination_features)
             )
 
         return possible_combinations
