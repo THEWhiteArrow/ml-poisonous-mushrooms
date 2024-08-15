@@ -33,7 +33,8 @@ def create_objective(
     X = data.drop(columns=["class"])
     y = data["class"]
 
-    processing_pipeline_wrapper = ProcessingPipelineWrapper()
+    processing_pipeline_wrapper = ProcessingPipelineWrapper(
+        pandas_output=False)
     model_wrapper = model_combination.model_wrapper
     model = model_wrapper.model
     allow_strings = model_wrapper.allow_strings

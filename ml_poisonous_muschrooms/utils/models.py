@@ -7,15 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import RidgeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-
+from lightgbm import LGBMClassifier
 from ml_poisonous_muschrooms.utils.features import FeatureCombination, FeatureManager
-
-
-@dataclass
-class ModelWrapper:
-    model: BaseEstimator
-    allow_strings: bool
-    get_params: Callable[[optuna.Trial], Dict[str, Any]]
 
 
 def get_ridge_params(trial: optuna.Trial) -> Dict[str, Any]:
@@ -56,6 +49,27 @@ def get_svc_params(trial: optuna.Trial) -> Dict[str, Any]:
     }
 
 
+def get_lgbm_params(trial: optuna.Trial) -> Dict[str, Any]:
+    return {
+        "n_estimators": trial.suggest_int("n_estimators", 50, 500),
+        "max_depth": trial.suggest_int("max_depth", 3, 20),
+        "learning_rate": trial.suggest_float("learning_rate", 1e-3, 1, log=True),
+        "num_leaves": trial.suggest_int("num_leaves", 2, 500),
+        "min_child_samples": trial.suggest_int("min_child_samples", 3, 200),
+        "subsample": trial.suggest_float("subsample", 0.1, 1),
+        "colsample_bytree": trial.suggest_float("colsample_bytree", 0.1, 1),
+        "reg_alpha": trial.suggest_float("reg_alpha", 1e-3, 10, log=True),
+        "reg_lambda": trial.suggest_float("reg_lambda", 1e-3, 10, log=True),
+    }
+
+
+@dataclass
+class ModelWrapper:
+    model: BaseEstimator
+    allow_strings: bool
+    get_params: Callable[[optuna.Trial], Dict[str, Any]]
+
+
 @dataclass
 class ModelManager:
     task: Literal["classification"]
@@ -81,8 +95,15 @@ class ModelManager:
                     get_params=get_kneighbors_params,
                 ),
                 ModelWrapper(
-                    model=SVC(), allow_strings=True, get_params=get_svc_params
+                    model=SVC(),
+                    allow_strings=True,
+                    get_params=get_svc_params
                 ),
+                ModelWrapper(
+                    model=LGBMClassifier(),   # type: ignore
+                    allow_strings=True,
+                    get_params=get_lgbm_params
+                )
             ]
 
         else:

@@ -75,7 +75,7 @@ def debug():
     )[choosen_combination.feature_combination.features]
     y = engineered_data.copy()["class"]
 
-    processing_pipeline_wrapper = ProcessingPipelineWrapper()
+    processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=True)
     model_wrapper = choosen_combination.model_wrapper
     model = model_wrapper.model
 

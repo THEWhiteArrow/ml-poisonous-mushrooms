@@ -34,7 +34,7 @@ class ProcessingPipelineWrapper:
 
     memory: Optional[Memory] = None
     """A memory caching of pipeline."""
-    pandas_output: bool = True
+    pandas_output: bool = False
     """Whether or not the pipeline should output pandas DataFrame."""
 
     def create_pipeline(
@@ -77,7 +77,7 @@ class ProcessingPipelineWrapper:
                         OneHotEncoder(
                             drop="first",
                             handle_unknown="infrequent_if_exist",
-                            sparse_output=False,
+                            sparse_output=self.pandas_output is False,
                         ),
                         make_column_selector(
                             dtype_include=object),  # type: ignore
