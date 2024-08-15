@@ -17,6 +17,44 @@ class ModelWrapper:
     get_params: Callable[[optuna.Trial], Dict[str, Any]]
 
 
+def get_ridge_params(trial: optuna.Trial) -> Dict[str, Any]:
+    return {
+        "alpha": trial.suggest_float("alpha", 1e-3, 1000, log=True),
+        "tol": trial.suggest_float("tol", 1e-5, 1e-1, log=True),
+    }
+
+
+def get_random_forest_params(trial: optuna.Trial) -> Dict[str, Any]:
+    return {
+        "n_estimators": trial.suggest_int("n_estimators", 50, 500),
+        "max_depth": trial.suggest_int("max_depth", 3, 20),
+        "min_samples_split": trial.suggest_int("min_samples_split", 2, 20),
+        "min_samples_leaf": trial.suggest_int("min_samples_leaf", 1, 20),
+        "max_features": trial.suggest_categorical(
+            "max_features", [None, "sqrt", "log2"]
+        ),
+    }
+
+
+def get_kneighbors_params(trial: optuna.Trial) -> Dict[str, Any]:
+    return {
+        "n_neighbors": trial.suggest_int("n_neighbors", 3, 50),
+        "weights": trial.suggest_categorical("weights", ["uniform", "distance"]),
+        "p": trial.suggest_int("p", 1, 5),
+    }
+
+
+def get_svc_params(trial: optuna.Trial) -> Dict[str, Any]:
+    return {
+        "C": trial.suggest_float("C", 1e-3, 10, log=True),
+        "kernel": trial.suggest_categorical(
+            "kernel", ["linear", "poly", "rbf", "sigmoid"]
+        ),
+        "gamma": trial.suggest_categorical("gamma", ["scale", "auto"]),
+        "tol": trial.suggest_float("tol", 1e-5, 1e-1, log=True),
+    }
+
+
 @dataclass
 class ModelManager:
     task: Literal["classification"]
@@ -29,52 +67,23 @@ class ModelManager:
                 ModelWrapper(
                     model=RidgeClassifier(),
                     allow_strings=False,
-                    get_params=lambda trial: {
-                        "alpha": trial.suggest_float("alpha", 1e-3, 1000, log=True),
-                        "tol": trial.suggest_float("tol", 1e-5, 1e-1, log=True),
-                    },
+                    get_params=get_ridge_params,
                 ),
                 ModelWrapper(
                     model=RandomForestClassifier(),
                     allow_strings=True,
-                    get_params=lambda trial: {
-                        "n_estimators": trial.suggest_int("n_estimators", 50, 500),
-                        "max_depth": trial.suggest_int("max_depth", 3, 20),
-                        "min_samples_split": trial.suggest_int(
-                            "min_samples_split", 2, 20
-                        ),
-                        "min_samples_leaf": trial.suggest_int(
-                            "min_samples_leaf", 1, 20
-                        ),
-                        "max_features": trial.suggest_categorical(
-                            "max_features", ["auto", "sqrt", "log2"]
-                        ),
-                    },
+                    get_params=get_random_forest_params,
                 ),
                 ModelWrapper(
                     model=KNeighborsClassifier(),
                     allow_strings=True,
-                    get_params=lambda trial: {
-                        "n_neighbors": trial.suggest_int("n_neighbors", 3, 50),
-                        "weights": trial.suggest_categorical(
-                            "weights", ["uniform", "distance"]
-                        ),
-                        "p": trial.suggest_int("p", 1, 5),
-                    },
+                    get_params=get_kneighbors_params,
                 ),
                 ModelWrapper(
-                    model=SVC(),
-                    allow_strings=True,
-                    get_params=lambda trial: {
-                        "C": trial.suggest_float("C", 1e-3, 10, log=True),
-                        "kernel": trial.suggest_categorical(
-                            "kernel", ["linear", "poly", "rbf", "sigmoid"]
-                        ),
-                        "gamma": trial.suggest_categorical("gamma", ["scale", "auto"]),
-                        "tol": trial.suggest_float("tol", 1e-5, 1e-1, log=True),
-                    },
+                    model=SVC(), allow_strings=True, get_params=get_svc_params
                 ),
             ]
+
         else:
             raise ValueError(
                 "Bro. You had one job of selecting a proper task name and you failed..."

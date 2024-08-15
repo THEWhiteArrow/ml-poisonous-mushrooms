@@ -20,7 +20,7 @@ def setup_logger(name: str | None = None) -> logging.Logger:
         logger.handlers.clear()
 
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.WARNING,
         format="%(levelname)s %(name)s %(asctime)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[file_handler, stream_handler],
