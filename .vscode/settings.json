@@ -3,5 +3,6 @@
 		"*.zip": "default",
 		"file:/**/*.csv": "jupyter-data-wrangler"
 	},
-	"python.analysis.typeCheckingMode": "standard"
+	"python.analysis.typeCheckingMode": "standard",
+	"makefile.configureOnOpen": false
 }

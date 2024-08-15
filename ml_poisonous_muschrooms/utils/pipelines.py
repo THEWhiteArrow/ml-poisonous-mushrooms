@@ -9,8 +9,7 @@ from sklearn.compose import make_column_selector, ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.pipeline import FeatureUnion, Pipeline, make_pipeline
-
-from logger import setup_logger
+from ml_poisonous_muschrooms.logger import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -51,20 +50,24 @@ class ProcessingPipelineWrapper:
             Pipeline: A processing pipeline.
         """
 
-        transformer_list: Sequence[Tuple[str, TransformerMixin | Pipeline]] = []
+        transformer_list: Sequence[Tuple[str,
+                                         TransformerMixin | Pipeline]] = []
 
         numerical_transformer = ColumnTransformer(
             transformers=[
                 (
                     "numerical_pipeline",
-                    make_pipeline(SimpleImputer(strategy="mean"), StandardScaler()),
-                    make_column_selector(dtype_include=np.number),  # type: ignore
+                    make_pipeline(SimpleImputer(
+                        strategy="mean"), StandardScaler()),
+                    make_column_selector(
+                        dtype_include=np.number),  # type: ignore
                 )
             ],
             remainder="drop",
         )
 
-        transformer_list.append(("numerical_transformer", numerical_transformer))
+        transformer_list.append(
+            ("numerical_transformer", numerical_transformer))
 
         if allow_strings is False:
             string_transformer = ColumnTransformer(
@@ -76,7 +79,8 @@ class ProcessingPipelineWrapper:
                             handle_unknown="infrequent_if_exist",
                             sparse_output=False,
                         ),
-                        make_column_selector(dtype_include=object),  # type: ignore
+                        make_column_selector(
+                            dtype_include=object),  # type: ignore
                     )
                 ],
                 remainder="drop",
@@ -149,6 +153,7 @@ class EarlyStoppingCallback:
         # Stop study if there has been no improvement for `self.patience` trials
         if self.no_improvement_count >= self.patience:
             logger.info(
-                f"Early stopping the study: {self.name} due to no improvement for {self.patience} trials"
+                f"Early stopping the study: {
+                    self.name} due to no improvement for {self.patience} trials"
             )
             study.stop()

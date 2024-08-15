@@ -6,8 +6,8 @@ import pandas as pd
 import optuna
 import datetime as dt
 from sklearn.model_selection import cross_val_score
-from logger import setup_logger
 from ml_poisonous_muschrooms.data_load.data_load import load_data
+from ml_poisonous_muschrooms.logger import setup_logger
 from ml_poisonous_muschrooms.engineering.engineering_features import engineer_features
 from ml_poisonous_muschrooms.utils.features import FeatureManager, FeatureSet
 from ml_poisonous_muschrooms.utils.models import (
@@ -96,7 +96,8 @@ def optimize_model(
     model_combination.hyper_parameters = best_params
 
     logger.info(
-        f"Model combination: {model_combination.name} has scored: {best_score} with params: {best_params}"
+        f"Model combination: {model_combination.name} has scored: {
+            best_score} with params: {best_params}"
     )
 
     # Prepare output for combining later
@@ -157,7 +158,8 @@ def parallel_optimization(
             cv_output = pd.concat(valid_results, axis=0, ignore_index=True)
 
     except KeyboardInterrupt:
-        logger.warning("Process interrupted by user. Terminating all processes...")
+        logger.warning(
+            "Process interrupted by user. Terminating all processes...")
 
         # Ensure that the pool is terminated and joined
         if pool:  # type: ignore
@@ -167,7 +169,8 @@ def parallel_optimization(
         # Save the intermediate results before re-raising the exception
         if not cv_output.empty:
             logger.info("Saving intermediate results to CSV before exit...")
-            cv_output.to_csv(f"cv_output_{run_str}_interrupted.csv", index=False)
+            cv_output.to_csv(
+                f"cv_output_{run_str}_interrupted.csv", index=False)
 
         raise  # Re-raise the KeyboardInterrupt to exit the program
 
@@ -213,7 +216,8 @@ def hyper_opt(
             FeatureSet(
                 name="cap",
                 is_optional=True,
-                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
+                features=["cap-diameter", "cap-shape",
+                          "cap-surface", "cap-color"],
             ),
             FeatureSet(
                 name="gill",
@@ -253,7 +257,8 @@ def hyper_opt(
         cv_output_prev = pd.read_csv(f"cv_output_{model_run}.csv")
     except Exception:
         logger.info("No existing CV output found.")
-        cv_output_prev = pd.DataFrame(data={"name": [], "accuracy": [], "params": []})
+        cv_output_prev = pd.DataFrame(
+            data={"name": [], "accuracy": [], "params": []})
 
     omit_names: List[str] = cv_output_prev["name"].unique().tolist()
 
@@ -270,7 +275,8 @@ def hyper_opt(
         omit_names=omit_names,
     )
 
-    logger.info("Combining output with previous model run if exists and saving...")
+    logger.info(
+        "Combining output with previous model run if exists and saving...")
     pd.concat([cv_output_prev, cv_output_curr], axis=0, ignore_index=True).to_csv(
         f"cv_output_{model_run}.csv", index=False
     )

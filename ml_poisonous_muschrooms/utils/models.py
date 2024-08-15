@@ -7,7 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import RidgeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-from features import FeatureCombination, FeatureManager
+
+from ml_poisonous_muschrooms.utils.features import FeatureCombination, FeatureManager
 
 
 @dataclass
@@ -127,7 +128,8 @@ class HyperOptManager:
         hyper_opt_model_combinations: List[HyperOptModelCombination] = [
             HyperOptModelCombination(
                 model_wrapper=model_wrapper,
-                name=f"{model_wrapper.model.__class__.__name__}_{combination.name}",
+                name=f"{model_wrapper.model.__class__.__name__}_{
+                    combination.name}",
                 feature_combination=combination,
             )
             for model_wrapper in self.model_wrappers

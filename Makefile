@@ -1,4 +1,6 @@
 install:
+	@echo "Setting poetry config..."
+	poetry config virtualenvs.in-project true
 	@echo "Installing poetry..."
-	cd ml_poisonous_mushrooms && poetry install
+	poetry install
 	@echo "Done!"

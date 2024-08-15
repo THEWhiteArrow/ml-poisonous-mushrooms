@@ -1,5 +1,3 @@
-
-
 from sklearn.model_selection import cross_val_score
 from ml_poisonous_muschrooms.data_load.data_load import load_data
 from ml_poisonous_muschrooms.engineering.engineering_features import engineer_features
@@ -17,7 +15,8 @@ def debug():
     train, test = load_data()
 
     logger.info("Engineering data...")
-    engineered_data = engineer_features(train.head(10000 * 1000)).set_index("id")
+    engineered_data = engineer_features(
+        train.head(10000 * 1000)).set_index("id")
 
     feature_manager = FeatureManager(
         feature_sets=[
@@ -35,7 +34,8 @@ def debug():
             FeatureSet(
                 name="cap",
                 is_optional=True,
-                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
+                features=["cap-diameter", "cap-shape",
+                          "cap-surface", "cap-color"],
             ),
             FeatureSet(
                 name="gill",
@@ -71,7 +71,8 @@ def debug():
     choosen_combination = all_model_combinations[13]
     logger.info(choosen_combination.name)
 
-    X = engineered_data.copy()[choosen_combination.feature_combination.features]
+    X = engineered_data.copy(
+    )[choosen_combination.feature_combination.features]
     y = engineered_data.copy()["class"]
 
     processing_pipeline_wrapper = ProcessingPipelineWrapper()
@@ -80,7 +81,9 @@ def debug():
 
     allow_strings = model_wrapper.allow_strings
 
-    logger.info(f"The model {model.__class__.__name__} {"allows strings" if allow_strings is True else "does NOT allow strings"}")
+    logger.info(f"The model {model.__class__.__name__} {
+        'allows strings' if allow_strings is True else 'does NOT allow strings'}")
+
     pipeline = processing_pipeline_wrapper.create_pipeline(
         model=model, allow_strings=allow_strings
     )
