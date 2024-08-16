@@ -1,4 +1,4 @@
-import json
+import os
 import signal
 from typing import Callable, List, Optional
 import multiprocessing as mp
@@ -14,6 +14,7 @@ from ml_poisonous_mushrooms.utils.models import (
     HyperOptManager,
     HyperOptModelCombination,
     ModelManager,
+    HyperOptResult
 )
 from ml_poisonous_mushrooms.utils.pipelines import (
     EarlyStoppingCallback,
@@ -62,14 +63,32 @@ def create_objective(
     return objective
 
 
+def get_existing_models(run_str: str) -> List[str]:
+    existing_models = []
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    model_run_dir_path = os.path.join(dir_path, "models", f"hyper_opt_{run_str}")
+
+    if not os.path.exists(model_run_dir_path):
+        return existing_models
+
+    for file in os.listdir(model_run_dir_path):
+        if file.endswith(".pkl"):
+            existing_models.append(file.split(".")[0])
+
+    return existing_models
+
+
 def optimize_model(
+    model_run: str,
     model_combination: HyperOptModelCombination,
     data: pd.DataFrame,
     n_optimization_trials: int,
     n_cv: int,
-    n_patience: int = 7,
-):
-    logger.info(f"Optimizing model combination: {model_combination}")
+    n_patience: int,
+    i: int,
+) -> None:
+    logger.info(f"Optimizing model combination {i}: {model_combination.name}")
     early_stopping = EarlyStoppingCallback(
         name=model_combination.name, patience=n_patience
     )
@@ -93,24 +112,27 @@ def optimize_model(
     best_params = study.best_params
     best_score = study.best_value
 
-    model_combination.score = best_score
-    model_combination.hyper_parameters = best_params
-
     logger.info(
         f"Model combination: {model_combination.name} has scored: {
             best_score} with params: {best_params}"
     )
 
-    # Prepare output for combining later
-    result = pd.DataFrame(
-        data={
-            "name": [model_combination.name],
-            "accuracy": [best_score],
-            "params": [json.dumps(best_params)],
-        }
+    result = HyperOptResult(
+        name=model_combination.name,
+        score=best_score,
+        params=best_params,
+        model=model_combination.model_wrapper.model,
+        features=model_combination.feature_combination.features,
     )
 
-    return result
+    result.pickle(
+        path=os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "models",
+            f"hyper_opt_{model_run}",
+            f"{model_combination.name}.pkl",
+        )
+    )
 
 
 def init_worker():
@@ -123,59 +145,30 @@ def parallel_optimization(
     n_optimization_trials: int,
     n_cv: int,
     n_patience: int,
-    run_str: str,
+    model_run: str,
     omit_names: List[str] = [],
 ):
-    cv_output = pd.DataFrame()
-
-    # Define a function to handle the Ctrl+C interrupt
-
-    try:
-        # Set up multiprocessing pool
-        with mp.Pool(
-            processes=mp.cpu_count() * 3 // 4, initializer=init_worker
-        ) as pool:
-            # Map each iteration of the loop to a process
-            results = pool.starmap(
-                optimize_model,
-                [
-                    (
-                        model_combination,
-                        engineered_data,
-                        n_optimization_trials,
-                        n_cv,
-                        n_patience,
-                    )
-                    for model_combination in all_model_combinations
-                    if model_combination.name not in omit_names
-                ],
-            )
-
-        # Filter out None results (skipped iterations)
-        valid_results = [res for res in results if res is not None]
-
-        # Combine all DataFrames into a single output DataFrame
-        if valid_results:
-            cv_output = pd.concat(valid_results, axis=0, ignore_index=True)
-
-    except KeyboardInterrupt:
-        logger.warning(
-            "Process interrupted by user. Terminating all processes...")
-
-        # Ensure that the pool is terminated and joined
-        if pool:  # type: ignore
-            pool.terminate()
-            pool.join()
-
-        # Save the intermediate results before re-raising the exception
-        if not cv_output.empty:
-            logger.info("Saving intermediate results to CSV before exit...")
-            cv_output.to_csv(
-                f"cv_output_{run_str}_interrupted.csv", index=False)
-
-        raise  # Re-raise the KeyboardInterrupt to exit the program
-
-    return cv_output
+    # Set up multiprocessing pool
+    with mp.Pool(
+        processes=mp.cpu_count() // 2, initializer=init_worker
+    ) as pool:
+        # Map each iteration of the loop to a process
+        _ = pool.starmap(
+            optimize_model,
+            [
+                (
+                    model_run,
+                    model_combination,
+                    engineered_data,
+                    n_optimization_trials,
+                    n_cv,
+                    n_patience,
+                    i,
+                )
+                for i, model_combination in enumerate(all_model_combinations)
+                if model_combination.name not in omit_names
+            ],
+        )
 
 
 def hyper_opt(
@@ -195,7 +188,7 @@ def hyper_opt(
     logger.info("Engineering features...")
     # --- NOTE ---
     # This could be a class that is injected with injector.
-    engineered_data = engineer_features(train).set_index("id")
+    engineered_data = engineer_features(train.head(10 * 1000)).set_index("id")
 
     logger.info(f"Training data has {len(engineered_data)} rows.")
 
@@ -253,34 +246,24 @@ def hyper_opt(
     all_model_combinations = hyper_manager.get_model_combinations()
     logger.info(f"Training {len(all_model_combinations)} combinations.")
 
-    logger.info("Loading existing CV output...")
-    try:
-        cv_output_prev = pd.read_csv(f"cv_output_{model_run}.csv")
-    except Exception:
-        logger.info("No existing CV output found.")
-        cv_output_prev = pd.DataFrame(
-            data={"name": [], "accuracy": [], "params": []})
+    logger.info("Checking for existing models...")
 
-    omit_names: List[str] = cv_output_prev["name"].unique().tolist()
+    omit_names = get_existing_models(model_run)
 
     logger.info(f"Omitting {len(omit_names)} combinations.")
 
     logger.info("Starting parallel optimization...")
-    cv_output_curr = parallel_optimization(
+    _ = parallel_optimization(
         all_model_combinations=all_model_combinations,
         engineered_data=engineered_data,
         n_optimization_trials=n_optimization_trials,
         n_cv=n_cv,
         n_patience=n_patience,
-        run_str=model_run,
+        model_run=model_run,
         omit_names=omit_names,
     )
 
-    logger.info(
-        "Combining output with previous model run if exists and saving...")
-    pd.concat([cv_output_prev, cv_output_curr], axis=0, ignore_index=True).to_csv(
-        f"cv_output_{model_run}.csv", index=False
-    )
+    logger.info("Models has been pickled and saved to disk.")
 
 
 if __name__ == "__main__":

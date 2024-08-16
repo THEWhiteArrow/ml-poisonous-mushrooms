@@ -1,6 +1,7 @@
-from typing import Any, Callable, Dict, List, Literal, Optional
-from dataclasses import dataclass, asdict
+import os
 import pickle
+from typing import Any, Callable, Dict, List, Literal
+from dataclasses import dataclass, asdict
 import optuna
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import RandomForestClassifier
@@ -117,23 +118,6 @@ class HyperOptModelCombination:
     model_wrapper: ModelWrapper
     name: str
     feature_combination: FeatureCombination
-    score: Optional[float] = None
-    hyper_parameters: Optional[Dict[str, Any]] = None
-
-    def pickle(self, path: str = "./") -> None:
-        # Open the file in write-binary mode
-        with open(f"{path}{self.name}_{self.feature_combination.name}.pkl", "wb") as f:
-            pickle.dump(self, f)
-
-    def pickle_as_dict(self, path: str = "./") -> None:
-        # Create a dictionary from the dataclass fields
-        data_dict = asdict(self)
-
-        # Open the file in write-binary mode
-        with open(
-            f"{path}{self.name}_{self.feature_combination.name}_dict.pkl", "wb"
-        ) as f:
-            pickle.dump(data_dict, f)
 
 
 @dataclass
@@ -158,3 +142,23 @@ class HyperOptManager:
         ]
 
         return hyper_opt_model_combinations
+
+
+@dataclass
+class HyperOptResult:
+    name: str
+    score: float
+    params: Dict[str, Any]
+    model: BaseEstimator
+    features: List[str]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    def pickle(self, path: str) -> None:
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path))
+
+        with open(path, "wb") as f:
+            pickle.dump(self, f)
+
