@@ -1,11 +1,13 @@
 from sklearn.model_selection import cross_val_score
-from ml_poisonous_mushrooms.data.data_load import load_data
+from lib.features.FeatureManager import FeatureManager
+from lib.features.FeatureSet import FeatureSet
+from lib.models.HyperOptManager import HyperOptManager
+from lib.models.ModelManager import ModelManager
+from lib.pipelines.ProcessingPipelineWrapper import ProcessingPipelineWrapper
+from ml_poisonous_mushrooms.utils.data_load import load_data
 from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
-from ml_poisonous_mushrooms.utils.features import FeatureManager, FeatureSet
-from ml_poisonous_mushrooms.utils.models import ModelManager
-from ml_poisonous_mushrooms.hyper_opt import HyperOptManager
-from ml_poisonous_mushrooms.utils.pipelines import ProcessingPipelineWrapper
-from ml_poisonous_mushrooms.logger import setup_logger
+
+from lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 

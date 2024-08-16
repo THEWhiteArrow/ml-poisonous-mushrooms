@@ -1,12 +1,11 @@
 from typing import List, cast
 import pandas as pd
-from ml_poisonous_mushrooms.logger import setup_logger
-from ml_poisonous_mushrooms.utils.pipelines import separate_column_types
+from lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 
 
-def clean_categorical(X: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+def clean_categorical(X: pd.DataFrame) -> pd.DataFrame:
     """A function that cleans the categorical data in the dataset.
     It will remove the outliers (categories that are less than 1% of the total data) and replace them with "nan".
     Additionally it will fill "real" NaNs with "nan" as well.
@@ -20,10 +19,13 @@ def clean_categorical(X: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
     """
     data = X.copy()
     categorical_outliers_frequency_limit = 0.01
-    logger.info(f"Outliers frequency limit is {
-                categorical_outliers_frequency_limit}")
+    logger.info(f"Outliers frequency limit is {categorical_outliers_frequency_limit}")
 
-    for column in columns:
+    categorical_columns: List[str] = X.select_dtypes(
+        exclude=["number"]
+    ).columns.tolist()
+
+    for column in categorical_columns:
         value_counts = data[column].value_counts().to_frame()
         sum_value_counts = value_counts["count"].sum()
 
@@ -38,8 +40,7 @@ def clean_categorical(X: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
 
         data.loc[:, column] = (
             pd.Series(
-                data[column].apply(
-                    lambda el: el if el not in outliers else "nan")
+                data[column].apply(lambda el: el if el not in outliers else "nan")
             )
             .rename(column)
             .fillna("nan")
@@ -59,8 +60,7 @@ def engineer_features(data: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: After engineered data.
     """
     data = data.copy()
-    _, categorical_columns = separate_column_types(data)
 
-    cleaned_cat_data = clean_categorical(X=data, columns=categorical_columns)
+    cleaned_cat_data = clean_categorical(X=data)
 
     return cleaned_cat_data

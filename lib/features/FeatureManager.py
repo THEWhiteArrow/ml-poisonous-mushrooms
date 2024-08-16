@@ -1,20 +1,13 @@
 from dataclasses import dataclass
 from typing import List
+
 import pandas as pd
-from ml_poisonous_mushrooms.logger import setup_logger
+
+from lib.features.FeatureCombination import FeatureCombination
+from lib.features.FeatureSet import FeatureSet
+from lib.logger import setup_logger
 
 logger = setup_logger(__name__)
-
-
-@dataclass
-class FeatureCombination:
-    name: str
-    features: List[str]
-
-
-@dataclass
-class FeatureSet(FeatureCombination):
-    is_optional: bool
 
 
 @dataclass

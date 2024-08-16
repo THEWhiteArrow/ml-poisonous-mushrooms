@@ -4,5 +4,6 @@
 		"file:/**/*.csv": "jupyter-data-wrangler"
 	},
 	"python.analysis.typeCheckingMode": "standard",
-	"makefile.configureOnOpen": false
+	"makefile.configureOnOpen": false,
+	"python.analysis.autoImportCompletions": true
 }

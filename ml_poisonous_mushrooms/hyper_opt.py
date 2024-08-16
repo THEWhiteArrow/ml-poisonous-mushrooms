@@ -1,50 +1,50 @@
-import os
-import signal
-from typing import Callable, List, Optional
-import multiprocessing as mp
-import pandas as pd
-import optuna
+from typing import Callable, Optional
 import datetime as dt
-from sklearn.model_selection import cross_val_score
-from ml_poisonous_mushrooms.data.data_load import load_data
-from ml_poisonous_mushrooms.logger import setup_logger
-from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
-from ml_poisonous_mushrooms.utils.features import FeatureManager, FeatureSet
-from ml_poisonous_mushrooms.utils.models import (
-    HyperOptManager,
-    HyperOptModelCombination,
-    ModelManager,
-    HyperOptResult
-)
-from ml_poisonous_mushrooms.utils.pipelines import (
-    EarlyStoppingCallback,
-    ProcessingPipelineWrapper,
-)
 
+import optuna
+import pandas as pd
+from sklearn.model_selection import cross_val_score
+
+from lib.features.FeatureManager import FeatureManager
+from lib.features.FeatureSet import FeatureSet
+from lib.logger import setup_logger
+from lib.models.HyperOptCombination import HyperOptCombination
+from lib.models.HyperOptManager import HyperOptManager
+from lib.models.ModelManager import ModelManager
+from lib.optymization.TrialParamWrapper import TrialParamWrapper
+from lib.optymization.parrarel_optimization import run_parallel_optimization
+from lib.pipelines.ProcessingPipelineWrapper import ProcessingPipelineWrapper
+from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
+from ml_poisonous_mushrooms.utils.data_load import load_data
+from ml_poisonous_mushrooms.utils.existing_models import get_existing_models
+from models import MODELS_DIR_PATH
 
 logger = setup_logger(__name__)
 
 
 def create_objective(
-    data: pd.DataFrame, model_combination: HyperOptModelCombination, n_cv: int
+    X: pd.DataFrame,
+    y: pd.DataFrame | pd.Series,
+    model_combination: HyperOptCombination,
+    n_cv: int,
 ) -> Callable[[optuna.Trial], float]:
 
-    data = data.copy()
+    X = X.copy()
+    y = y.copy()
 
-    X = data.drop(columns=["class"])
-    y = data["class"]
-
-    processing_pipeline_wrapper = ProcessingPipelineWrapper(
-        pandas_output=False)
+    processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
     model_wrapper = model_combination.model_wrapper
     model = model_wrapper.model
     allow_strings = model_wrapper.allow_strings
 
     def objective(
-        trail: optuna.Trial,
+        trial: optuna.Trial,
     ) -> float:
 
-        params = model_wrapper.get_params(trail)
+        params = TrialParamWrapper().get_params(
+            model_name=model_combination.model_wrapper.model.__class__.__name__,
+            trial=trial,
+        )
 
         model.set_params(**params)
 
@@ -61,114 +61,6 @@ def create_objective(
         return avg_acc
 
     return objective
-
-
-def get_existing_models(run_str: str) -> List[str]:
-    existing_models = []
-
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    model_run_dir_path = os.path.join(dir_path, "models", f"hyper_opt_{run_str}")
-
-    if not os.path.exists(model_run_dir_path):
-        return existing_models
-
-    for file in os.listdir(model_run_dir_path):
-        if file.endswith(".pkl"):
-            existing_models.append(file.split(".")[0])
-
-    return existing_models
-
-
-def optimize_model(
-    model_run: str,
-    model_combination: HyperOptModelCombination,
-    data: pd.DataFrame,
-    n_optimization_trials: int,
-    n_cv: int,
-    n_patience: int,
-    i: int,
-) -> None:
-    logger.info(f"Optimizing model combination {i}: {model_combination.name}")
-    early_stopping = EarlyStoppingCallback(
-        name=model_combination.name, patience=n_patience
-    )
-
-    # Create an Optuna study for hyperparameter optimization
-    study = optuna.create_study(
-        direction="maximize", study_name=f"optuna_{model_combination.name}"
-    )
-
-    study.optimize(
-        func=create_objective(
-            data=data[["class", *model_combination.feature_combination.features]],
-            model_combination=model_combination,
-            n_cv=n_cv,
-        ),
-        n_trials=n_optimization_trials,
-        callbacks=[early_stopping],  # type: ignore
-    )
-
-    # Save the best parameters and score
-    best_params = study.best_params
-    best_score = study.best_value
-
-    logger.info(
-        f"Model combination: {model_combination.name} has scored: {
-            best_score} with params: {best_params}"
-    )
-
-    result = HyperOptResult(
-        name=model_combination.name,
-        score=best_score,
-        params=best_params,
-        model=model_combination.model_wrapper.model,
-        features=model_combination.feature_combination.features,
-    )
-
-    result.pickle(
-        path=os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "models",
-            f"hyper_opt_{model_run}",
-            f"{model_combination.name}.pkl",
-        )
-    )
-
-
-def init_worker():
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-
-def parallel_optimization(
-    all_model_combinations: List[HyperOptModelCombination],
-    engineered_data: pd.DataFrame,
-    n_optimization_trials: int,
-    n_cv: int,
-    n_patience: int,
-    model_run: str,
-    omit_names: List[str] = [],
-):
-    # Set up multiprocessing pool
-    with mp.Pool(
-        processes=mp.cpu_count() // 2, initializer=init_worker
-    ) as pool:
-        # Map each iteration of the loop to a process
-        _ = pool.starmap(
-            optimize_model,
-            [
-                (
-                    model_run,
-                    model_combination,
-                    engineered_data,
-                    n_optimization_trials,
-                    n_cv,
-                    n_patience,
-                    i,
-                )
-                for i, model_combination in enumerate(all_model_combinations)
-                if model_combination.name not in omit_names
-            ],
-        )
 
 
 def hyper_opt(
@@ -210,8 +102,7 @@ def hyper_opt(
             FeatureSet(
                 name="cap",
                 is_optional=True,
-                features=["cap-diameter", "cap-shape",
-                          "cap-surface", "cap-color"],
+                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
             ),
             FeatureSet(
                 name="gill",
@@ -253,13 +144,17 @@ def hyper_opt(
     logger.info(f"Omitting {len(omit_names)} combinations.")
 
     logger.info("Starting parallel optimization...")
-    _ = parallel_optimization(
+    _ = run_parallel_optimization(
+        model_run=model_run,
+        direction="maximize",
         all_model_combinations=all_model_combinations,
-        engineered_data=engineered_data,
+        X=engineered_data,
+        y=engineered_data["target"],
         n_optimization_trials=n_optimization_trials,
         n_cv=n_cv,
         n_patience=n_patience,
-        model_run=model_run,
+        model_dir_path=MODELS_DIR_PATH,
+        create_objective=create_objective,
         omit_names=omit_names,
     )
 
