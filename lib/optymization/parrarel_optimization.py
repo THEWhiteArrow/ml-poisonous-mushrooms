@@ -1,5 +1,5 @@
 import signal
-from typing import Callable, List
+from typing import Callable, List, Optional
 import multiprocessing as mp
 
 import optuna
@@ -28,10 +28,13 @@ def run_parallel_optimization(
         Callable[[optuna.Trial], float],
     ],
     omit_names: List[str] = [],
+    processes: Optional[int] = None,
 ) -> None:
+    if processes is None:
+        processes = mp.cpu_count() * 3 // 4
 
     # Set up multiprocessing pool
-    with mp.Pool(processes=mp.cpu_count() * 3 // 4, initializer=init_worker) as pool:
+    with mp.Pool(processes=processes, initializer=init_worker) as pool:
         # Map each iteration of the loop to a process
         _ = pool.starmap(
             optimize_model_and_save,

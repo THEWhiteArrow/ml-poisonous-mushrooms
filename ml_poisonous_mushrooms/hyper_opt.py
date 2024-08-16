@@ -1,5 +1,6 @@
 from typing import Callable, Optional
 import datetime as dt
+import multiprocessing as mp
 
 import optuna
 import pandas as pd
@@ -68,6 +69,7 @@ def hyper_opt(
     n_cv: int,
     n_patience: int,
     model_run: Optional[str],
+    processes: Optional[int] = None,
 ):
     if model_run is None:
         model_run = dt.datetime.now().strftime("%Y%m%d%H%M")
@@ -156,6 +158,7 @@ def hyper_opt(
         model_dir_path=MODELS_DIR_PATH,
         create_objective=create_objective,
         omit_names=omit_names,
+        processes=processes,
     )
 
     logger.info("Models has been pickled and saved to disk.")
@@ -168,5 +171,6 @@ if __name__ == "__main__":
         n_cv=5,
         n_patience=7,
         model_run=None,
+        processes=mp.cpu_count() // 2,
     )
     logger.info("Hyper opt script complete.")
