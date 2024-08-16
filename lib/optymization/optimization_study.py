@@ -9,6 +9,7 @@ from lib.models.HyperOptCombination import HyperOptCombination
 from lib.models.HyperOptResult import HyperOptResult
 from lib.optymization.EarlyStoppingCallback import EarlyStoppingCallback
 from lib.logger import setup_logger
+from models import HYPER_OPT_PREFIX
 
 
 logger = setup_logger(__name__)
@@ -63,7 +64,7 @@ def optimize_model_and_save(
     result.pickle(
         path=os.path.join(
             model_dir_path,
-            f"hyper_opt_{model_run}",
+            f"{HYPER_OPT_PREFIX}{model_run}",
             f"{model_combination.name}.pkl",
         )
     )

@@ -16,7 +16,7 @@ from lib.optymization.parrarel_optimization import run_parallel_optimization
 from lib.pipelines.ProcessingPipelineWrapper import ProcessingPipelineWrapper
 from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
 from ml_poisonous_mushrooms.utils.data_load import load_data
-from ml_poisonous_mushrooms.utils.existing_models import get_existing_models
+from models.existing_models import get_existing_models
 from models import MODELS_DIR_PATH
 
 logger = setup_logger(__name__)
@@ -80,7 +80,7 @@ def hyper_opt(
     logger.info("Engineering features...")
     # --- NOTE ---
     # This could be a class that is injected with injector.
-    engineered_data = engineer_features(train.head(10 * 1000)).set_index("id")
+    engineered_data = engineer_features(train).set_index("id")
 
     logger.info(f"Training data has {len(engineered_data)} rows.")
 
@@ -149,7 +149,7 @@ def hyper_opt(
         direction="maximize",
         all_model_combinations=all_model_combinations,
         X=engineered_data,
-        y=engineered_data["target"],
+        y=engineered_data["class"],
         n_optimization_trials=n_optimization_trials,
         n_cv=n_cv,
         n_patience=n_patience,
