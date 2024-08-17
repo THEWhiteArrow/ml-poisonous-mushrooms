@@ -1,4 +1,8 @@
+import numpy as np
+
+import pandas as pd
 from sklearn.model_selection import cross_val_score
+
 from lib.features.FeatureManager import FeatureManager
 from lib.features.FeatureSet import FeatureSet
 from lib.models.HyperOptManager import HyperOptManager
@@ -6,13 +10,12 @@ from lib.models.ModelManager import ModelManager
 from lib.pipelines.ProcessingPipelineWrapper import ProcessingPipelineWrapper
 from ml_poisonous_mushrooms.utils.data_load import load_data
 from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
-
 from lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 
 
-def debug():
+def debug_pipelines():
     logger.info("Loading data...")
     train, test = load_data()
 
@@ -105,5 +108,56 @@ def debug():
     logger.info("Data has been processed")
 
 
+def debug_ensamble():
+    unique_names = ["RandomForest", "SVM", "LogisticRegression"]
+    unique_targets = ["e", "f"]
+    scores = [0.5, 0.8, 0.3]
+
+    def fake_out(i):
+        fake_arr = []
+        for i in range(i):
+            fake_arr.append(unique_targets[np.random.randint(1, 10) % 2])
+
+        return fake_arr
+
+    predictions = pd.DataFrame(index=range(10), data={
+        name : fake_out(10) for name in unique_names
+    })
+
+    scaled_scores = np.array(scores) / sum(scores)
+
+    votes = pd.DataFrame(index=range(10), columns=unique_targets)
+    votes.loc[:, :] = 0.0
+
+    for name in unique_names:
+        for target in unique_targets:
+            votes.loc[predictions.loc[predictions[name].eq(target)].index, target] += scaled_scores[unique_names.index(name)]
+
+    votes["decision"] = votes.apply(lambda row: row[unique_targets].idxmax(), axis=1)
+
+    print(votes)
+
+    return votes["decision"]
+
+
+def debug_enumerate():
+    class Test:
+        def __init__(self):
+            self.a = 1
+            self.b = 2
+
+        def __str__(self):
+            return f"{self.a} {self.b}"
+
+    arr = [Test(), Test(), Test()]
+    print([str(item) for item in arr])
+    for i, item in enumerate(arr):
+        item.a = i
+
+    print([str(item) for item in arr])
+
 if __name__ == "__main__":
-    debug()
+    # debug_pipelines()
+    # debug_ensamble()
+    # debug_enumerate()
+    logger.info("Debugging done")
