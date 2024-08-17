@@ -30,9 +30,6 @@ def create_objective(
     n_cv: int,
 ) -> Callable[[optuna.Trial], float]:
 
-    X = X.copy()
-    y = y.copy()
-
     processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
     model_wrapper = model_combination.model_wrapper
     model = model_wrapper.model
@@ -133,7 +130,7 @@ def hyper_opt(
 
     hyper_manager = HyperOptManager(
         feature_manager=feature_manager,
-        model_wrappers=model_manager.get_model_wrappers(),
+        model_wrappers=model_manager.get_model_wrappers(use_sv=False),
     )
 
     all_model_combinations = hyper_manager.get_model_combinations()

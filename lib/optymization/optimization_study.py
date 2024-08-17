@@ -1,6 +1,7 @@
 
 import os
 from typing import Callable
+import gc
 
 import optuna
 import pandas as pd
@@ -69,3 +70,6 @@ def optimize_model_and_save(
         )
     )
 
+    del X
+    del y
+    gc.collect()
