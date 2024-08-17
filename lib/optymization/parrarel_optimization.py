@@ -7,6 +7,9 @@ import pandas as pd
 
 from lib.models.HyperOptCombination import HyperOptCombination
 from lib.optymization.optimization_study import optimize_model_and_save
+from lib.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 def init_worker() -> None:
@@ -32,6 +35,8 @@ def run_parallel_optimization(
 ) -> None:
     if processes is None:
         processes = mp.cpu_count() * 3 // 4
+
+    logger.info(f"Running optimization with {processes} processes")
 
     # Set up multiprocessing pool
     with mp.Pool(processes=processes, initializer=init_worker) as pool:
