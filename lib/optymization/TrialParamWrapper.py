@@ -47,12 +47,15 @@ class TrialParamWrapper:
             "n_estimators": trial.suggest_int("n_estimators", 50, 500),
             "max_depth": trial.suggest_int("max_depth", 3, 20),
             "learning_rate": trial.suggest_float("learning_rate", 1e-3, 1, log=True),
-            "num_leaves": trial.suggest_int("num_leaves", 2, 500),
-            "min_child_samples": trial.suggest_int("min_child_samples", 3, 200),
+            "num_leaves": trial.suggest_int("num_leaves", 10, 63),
+            "min_child_weight": trial.suggest_float(
+                "min_child_weight", 1e-3, 100, log=True
+            ),
             "subsample": trial.suggest_float("subsample", 0.1, 1),
             "colsample_bytree": trial.suggest_float("colsample_bytree", 0.1, 1),
-            "reg_alpha": trial.suggest_float("reg_alpha", 1e-3, 10, log=True),
-            "reg_lambda": trial.suggest_float("reg_lambda", 1e-3, 10, log=True),
+            "reg_alpha": trial.suggest_float("reg_alpha", 1e-8, 100, log=True),
+            "reg_lambda": trial.suggest_float("reg_lambda", 1e-8, 100, log=True),
+            "gamma": trial.suggest_float("gamma", 1e-3, 10, log=True),
         }
 
     def get_params(self, model_name: str, trial: optuna.Trial) -> Dict[str, Any]:
