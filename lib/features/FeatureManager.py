@@ -38,8 +38,8 @@ class FeatureManager:
         optioanl_feature_sets: List[FeatureSet] = [
             feat_set for feat_set in self.feature_sets if feat_set.is_optional is True
         ]
-        logger.info(f"Creating {len(optioanl_feature_sets)} optional feature sets.")
-        logger.info(f"Creating {len(mandatory_feature_sets)} mandatory feature sets.")
+        logger.info(f"Detected {len(optioanl_feature_sets)} optional feature sets.")
+        logger.info(f"Detected {len(mandatory_feature_sets)} mandatory feature sets.")
 
         if len(optioanl_feature_sets) > 10:
             logger.warning(
@@ -67,5 +67,7 @@ class FeatureManager:
                 FeatureCombination(name=combination_name,
                                    features=combination_features)
             )
+
+        logger.info(f"Generated {len(possible_combinations)} possible feature combinations.")
 
         return possible_combinations

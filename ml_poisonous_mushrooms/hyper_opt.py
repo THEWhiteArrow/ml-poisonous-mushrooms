@@ -47,7 +47,7 @@ def hyper_opt(
     engineered_data = engineer_features(train.head(limited_data_size)).set_index("id")
 
     all_model_combinations = create_combinations()
-    logger.info(f"Training {len(all_model_combinations)} combinations.")
+    logger.info(f"Created {len(all_model_combinations)} combinations.")
 
     logger.info("Checking for existing models...")
     omit_names = get_existing_models(model_run)
