@@ -45,9 +45,9 @@ class TrialParamWrapper:
     def _get_lgbm_params(self, trial: optuna.Trial) -> Dict[str, Any]:
         return {
             "n_estimators": trial.suggest_int("n_estimators", 50, 500),
-            "max_depth": trial.suggest_int("max_depth", 3, 20),
+            # "max_depth": trial.suggest_int("max_depth", 3, 20),
             "learning_rate": trial.suggest_float("learning_rate", 1e-3, 1, log=True),
-            "num_leaves": trial.suggest_int("num_leaves", 10, 63),
+            # "num_leaves": trial.suggest_int("num_leaves", 10, 63),
             "min_child_weight": trial.suggest_float(
                 "min_child_weight", 1e-3, 100, log=True
             ),
@@ -55,7 +55,37 @@ class TrialParamWrapper:
             "colsample_bytree": trial.suggest_float("colsample_bytree", 0.1, 1),
             "reg_alpha": trial.suggest_float("reg_alpha", 1e-8, 100, log=True),
             "reg_lambda": trial.suggest_float("reg_lambda", 1e-8, 100, log=True),
-            "gamma": trial.suggest_float("gamma", 1e-3, 10, log=True),
+        }
+
+    def _get_xgb_params(self, trial: optuna.Trial) -> Dict[str, Any]:
+        return {
+            "n_estimators": trial.suggest_int(
+                "n_estimators", 100, 1200, step=50
+            ),  # Number of trees in the ensemble
+            "max_depth": trial.suggest_int(
+                "max_depth", 3, 15
+            ),  # Maximum depth of each tree
+            "learning_rate": trial.suggest_float(
+                "learning_rate", 0.01, 0.3, log=True
+            ),  # Learning rate
+            "subsample": trial.suggest_float(
+                "subsample", 0.5, 1.0
+            ),  # Subsample ratio of the training instances
+            "colsample_bytree": trial.suggest_float(
+                "colsample_bytree", 0.5, 1.0
+            ),  # Subsample ratio of columns when constructing each tree
+            "gamma": trial.suggest_float(
+                "gamma", 0.01, 10.0, log=True
+            ),  # Minimum loss reduction required to make a further partition on a leaf node of the tree
+            "reg_alpha": trial.suggest_float(
+                "reg_alpha", 1e-8, 100.0, log=True
+            ),  # L1 regularization term on weights
+            "reg_lambda": trial.suggest_float(
+                "reg_lambda", 1e-8, 100.0, log=True
+            ),  # L2 regularization term on weights
+            "min_child_weight": trial.suggest_float(
+                "min_child_weight", 1, 100, log=True
+            ),  # Minimum sum of instance weight (hessian) needed in a child
         }
 
     def get_params(self, model_name: str, trial: optuna.Trial) -> Dict[str, Any]:
@@ -69,5 +99,7 @@ class TrialParamWrapper:
             return self._get_svc_params(trial)
         elif model_name == "LGBMClassifier":
             return self._get_lgbm_params(trial)
+        elif model_name == "XGBClassifier":
+            return self._get_xgb_params(trial)
         else:
             raise ValueError(f"Model {model_name} not supported.")

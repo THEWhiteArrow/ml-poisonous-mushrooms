@@ -72,4 +72,5 @@ def optimize_model_and_save(
 
     del X
     del y
+    del study
     gc.collect()
