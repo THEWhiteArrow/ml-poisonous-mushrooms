@@ -20,8 +20,7 @@ def debug_pipelines():
     train, test = load_data()
 
     logger.info("Engineering data...")
-    engineered_data = engineer_features(
-        train.head(10000 * 1000)).set_index("id")
+    engineered_data = engineer_features(train.head(10000 * 1000)).set_index("id")
 
     feature_manager = FeatureManager(
         feature_sets=[
@@ -39,8 +38,7 @@ def debug_pipelines():
             FeatureSet(
                 name="cap",
                 is_optional=True,
-                features=["cap-diameter", "cap-shape",
-                          "cap-surface", "cap-color"],
+                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
             ),
             FeatureSet(
                 name="gill",
@@ -76,8 +74,7 @@ def debug_pipelines():
     choosen_combination = all_model_combinations[13]
     logger.info(choosen_combination.name)
 
-    X = engineered_data.copy(
-    )[choosen_combination.feature_combination.features]
+    X = engineered_data.copy()[choosen_combination.feature_combination.features]
     y = engineered_data.copy()["class"]
 
     processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=True)
@@ -86,8 +83,10 @@ def debug_pipelines():
 
     allow_strings = model_wrapper.allow_strings
 
-    logger.info(f"The model {model.__class__.__name__} {
-        'allows strings' if allow_strings is True else 'does NOT allow strings'}")
+    model_name = model.__class__.__name__
+    logger.info(
+        f"The model {model_name} {'allows strings' if allow_strings is True else 'does NOT allow strings'}"
+    )
 
     pipeline = processing_pipeline_wrapper.create_pipeline(
         model=model, allow_strings=allow_strings
@@ -95,9 +94,7 @@ def debug_pipelines():
 
     # processed_X = pipeline.fit_transform(X=X.copy())
 
-    scores = cross_val_score(
-        estimator=pipeline, X=X, y=y, cv=5, scoring="accuracy"
-    )
+    scores = cross_val_score(estimator=pipeline, X=X, y=y, cv=5, scoring="accuracy")
 
     logger.info(f"Accuracy scores: {scores}")
     logger.info(f"Avg: {scores.mean()}")
@@ -120,9 +117,9 @@ def debug_ensamble():
 
         return fake_arr
 
-    predictions = pd.DataFrame(index=range(10), data={
-        name : fake_out(10) for name in unique_names
-    })
+    predictions = pd.DataFrame(
+        index=range(10), data={name: fake_out(10) for name in unique_names}
+    )
 
     scaled_scores = np.array(scores) / sum(scores)
 
@@ -131,7 +128,9 @@ def debug_ensamble():
 
     for name in unique_names:
         for target in unique_targets:
-            votes.loc[predictions.loc[predictions[name].eq(target)].index, target] += scaled_scores[unique_names.index(name)]
+            votes.loc[
+                predictions.loc[predictions[name].eq(target)].index, target
+            ] += scaled_scores[unique_names.index(name)]
 
     votes["decision"] = votes.apply(lambda row: row[unique_targets].idxmax(), axis=1)
 
@@ -156,8 +155,90 @@ def debug_enumerate():
 
     print([str(item) for item in arr])
 
+
+def debug_xgboost():
+    logger.info("Loading data...")
+    train, test = load_data()
+
+    logger.info("Engineering data...")
+    engineered_data = engineer_features(train.head(1100 * 1000)).set_index("id")
+
+    feature_manager = FeatureManager(
+        feature_sets=[
+            FeatureSet(
+                name="stem",
+                is_optional=False,
+                features=[
+                    "stem-height",
+                    "stem-width",
+                    "stem-root",
+                    "stem-surface",
+                    "stem-color",
+                ],
+            ),
+            FeatureSet(
+                name="cap",
+                is_optional=True,
+                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
+            ),
+            FeatureSet(
+                name="gill",
+                is_optional=True,
+                features=["gill-spacing", "gill-attachment", "gill-color"],
+            ),
+            FeatureSet(
+                name="veil", is_optional=True, features=["veil-type", "veil-color"]
+            ),
+            FeatureSet(
+                name="ring", is_optional=True, features=["has-ring", "ring-type"]
+            ),
+            FeatureSet(
+                name="other",
+                is_optional=True,
+                features=[
+                    "spore-print-color",
+                    "habitat",
+                    "season",
+                    "does-bruise-or-bleed",
+                ],
+            ),
+        ]
+    )
+    model_manager = ModelManager(task="classification")
+    hyper_manager = HyperOptManager(
+        feature_manager=feature_manager,
+        model_wrappers=model_manager.get_model_wrappers(),
+    )
+
+    all_model_combinations = hyper_manager.get_model_combinations()
+
+    choosen_combination = list(
+        filter(
+            lambda combination: "XGBClassifier" in combination.name,
+            all_model_combinations,
+        )
+    )[0]
+
+    logger.info(choosen_combination.name)
+    model_wrapper = choosen_combination.model_wrapper
+    model = model_wrapper.model
+
+    X = engineered_data.copy()[choosen_combination.feature_combination.features]
+    y = engineered_data.copy()["class"]
+
+    processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
+    pipeline = processing_pipeline_wrapper.create_pipeline(
+        model=model, allow_strings=model_wrapper.allow_strings
+    )
+
+    acc = cross_val_score(pipeline, X, y, cv=5, scoring="accuracy")
+
+    logger.info(f"Accuracy: {acc.mean()}")
+
+
 if __name__ == "__main__":
     # debug_pipelines()
     # debug_ensamble()
     # debug_enumerate()
+    debug_xgboost()
     logger.info("Debugging done")

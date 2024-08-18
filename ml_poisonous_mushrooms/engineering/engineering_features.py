@@ -50,6 +50,21 @@ def clean_categorical(X: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
+def label_targets(X: pd.DataFrame) -> pd.DataFrame:
+    """A function that labels the targets in the dataset.
+
+    Args:
+        X (pd.DataFrame): A dataframe to label.
+
+    Returns:
+        pd.DataFrame: A labeled dataframe.
+    """
+    data = X.copy()
+    data["class"] = data["class"].map({"p": 1, "e": 0})
+
+    return data
+
+
 def engineer_features(data: pd.DataFrame) -> pd.DataFrame:
     """A function that engineers the features.
 
@@ -62,5 +77,5 @@ def engineer_features(data: pd.DataFrame) -> pd.DataFrame:
     data = data.copy()
 
     cleaned_cat_data = clean_categorical(X=data)
-
-    return cleaned_cat_data
+    cleaned_labeled_data = label_targets(X=cleaned_cat_data)
+    return cleaned_labeled_data
