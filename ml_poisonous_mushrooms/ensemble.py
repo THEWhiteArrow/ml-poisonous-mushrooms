@@ -27,7 +27,7 @@ def create_ensemble_model_and_save() -> EnsembleModel:
 
     for model_name in config["model_combination_names"]:
         model_path = Path(
-            f"{PathManager.OUTPUT_DIR_PATH.value}/{PrefixManager.HYPER_OPT_PREFIX}{config['model_run']}/{model_name}.pkl"
+            f"{PathManager.OUTPUT_DIR_PATH.value}/{PrefixManager.HYPER_OPT_PREFIX}{config['model_run']}/{model_name}.ensemble"
         )
 
         model_data = cast(HyperOptResultDict, pickle.load(open(model_path, "rb")))

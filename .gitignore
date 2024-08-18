@@ -9,4 +9,4 @@
 *.log
 
 # Hyper opt models
-models/hyper_opt_*
+*.pkl
