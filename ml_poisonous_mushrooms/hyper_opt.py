@@ -36,10 +36,11 @@ def hyper_opt(
     logger.info("Engineering features...")
     # --- NOTE ---
     # This could be a class that is injected with injector.
-    logger.info(f"Limiting data to {limit_data_percentage * 100}%")
     all_data_size = len(train)
     limited_data_size = int(all_data_size * limit_data_percentage)
-    logger.info(f"Limiting data to {limited_data_size} rows from {all_data_size}.")
+    logger.info(
+        f"Limiting data to {limit_data_percentage * 100}% | from {all_data_size} to {limited_data_size}"
+    )
     engineered_data = engineer_features(train.head(limited_data_size)).set_index("id")
 
     all_model_combinations = create_combinations()
