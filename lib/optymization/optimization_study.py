@@ -1,4 +1,3 @@
-
 import os
 from typing import Callable
 import gc
@@ -28,17 +27,25 @@ def optimize_model_and_save(
     n_patience: int,
     i: int,
     model_dir_path: str,
-    create_objective_func: Callable[[pd.DataFrame, pd.DataFrame | pd.Series, HyperOptCombination, int], Callable[[optuna.Trial], float]],
+    create_objective_func: Callable[
+        [pd.DataFrame, pd.DataFrame | pd.Series, HyperOptCombination, int],
+        Callable[[optuna.Trial], float],
+    ],
 ) -> None:
-    logger.info(f"Optimizing model combination {i}: {model_combination.name}")
+    combination_name = model_combination.name
+    logger.info(f"Optimizing model combination {i}: {combination_name}")
 
     X = X.copy()[model_combination.feature_combination.features]
     y = y.copy()
 
-    early_stopping = EarlyStoppingCallback(name=model_combination.name, patience=n_patience)
+    early_stopping = EarlyStoppingCallback(
+        name=model_combination.name, patience=n_patience
+    )
 
     # Create an Optuna study for hyperparameter optimization
-    study = optuna.create_study(direction=direction, study_name=f"optuna_{model_combination.name}")
+    study = optuna.create_study(
+        direction=direction, study_name=f"optuna_{model_combination.name}"
+    )
 
     study.optimize(
         func=create_objective_func(X, y, model_combination, n_cv),
@@ -51,8 +58,7 @@ def optimize_model_and_save(
     best_score = study.best_value
 
     logger.info(
-        f"Model combination: {model_combination.name} has scored: {
-            best_score} with params: {best_params}"
+        f"Model combination: {combination_name} has scored: {best_score} with params: {best_params}"
     )
 
     result = HyperOptResultDict(
@@ -61,6 +67,7 @@ def optimize_model_and_save(
         params=best_params,
         model=model_combination.model,
         features=model_combination.feature_combination.features,
+        study=study,
     )
 
     with open(

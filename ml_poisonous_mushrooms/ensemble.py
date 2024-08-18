@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, cast
-import pickle
 
+import pickle
 from sklearn.model_selection import cross_val_score
 
 from lib.models.EnsembleModel import EnsembleModel
@@ -56,11 +56,10 @@ def create_ensemble_model_and_save() -> EnsembleModel:
 
 def test_ensemble_model(ensemble_model: EnsembleModel, n_cv: int) -> float:
     logger.info("Testing ensemble model")
-    # --- TODO ---
-    # Add test code for the ensemble model
+
     train, test = load_data()
 
-    engineered_data = engineer_features(train.head(1100 * 1000)).set_index("id")
+    engineered_data = engineer_features(train).set_index("id")
     processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
     pipeline = processing_pipeline_wrapper.create_pipeline(model=ensemble_model)
 
@@ -69,7 +68,6 @@ def test_ensemble_model(ensemble_model: EnsembleModel, n_cv: int) -> float:
     scores = cross_val_score(estimator=pipeline, X=X, y=y, cv=n_cv, scoring="accuracy")
 
     avg_acc = scores.mean()
-
     logger.info(f"Ensemble model has scored: {avg_acc}")
 
     return avg_acc

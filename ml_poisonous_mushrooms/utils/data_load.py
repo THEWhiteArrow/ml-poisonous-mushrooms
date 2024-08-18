@@ -1,10 +1,10 @@
 import json
 import os
-from typing import List, Tuple, TypedDict, cast
+from typing import Tuple, cast
 import pandas as pd
-from dataclasses import dataclass
 
 from data import DATA_DIR_PATH
+from lib.ensemble.EnsembleConfigDict import EnsembleConfigDict
 from lib.logger import setup_logger
 
 
@@ -36,12 +36,6 @@ def load_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
         )
 
     return train, test
-
-
-@dataclass
-class EnsembleConfigDict(TypedDict):
-    model_run: str
-    model_combination_names: List[str]
 
 
 def load_ensemble_config() -> EnsembleConfigDict:
