@@ -9,7 +9,7 @@ def get_existing_models(run_str: str) -> List[str]:
     existing_models = []
 
     model_run_dir_path = os.path.join(
-        PathManager.MODELS_DIR_PATH.value,
+        PathManager.OUTPUT_DIR_PATH.value,
         f"{PrefixManager.HYPER_OPT_PREFIX.value}{run_str}",
     )
 
