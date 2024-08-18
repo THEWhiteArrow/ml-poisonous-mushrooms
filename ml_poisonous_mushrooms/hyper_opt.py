@@ -22,6 +22,7 @@ def hyper_opt(
     n_cv: int,
     n_patience: int,
     model_run: Optional[str],
+    limit_data_percentage: float,
     processes: Optional[int] = None,
 ):
     if model_run is None:
@@ -35,8 +36,11 @@ def hyper_opt(
     logger.info("Engineering features...")
     # --- NOTE ---
     # This could be a class that is injected with injector.
-    engineered_data = engineer_features(train).set_index("id")
-    logger.info(f"Training data has {len(engineered_data)} rows.")
+    logger.info(f"Limiting data to {limit_data_percentage * 100}%")
+    all_data_size = len(train)
+    limited_data_size = int(all_data_size * limit_data_percentage)
+    logger.info(f"Limiting data to {limited_data_size} rows from {all_data_size}.")
+    engineered_data = engineer_features(train.head(limited_data_size)).set_index("id")
 
     all_model_combinations = create_combinations()
     logger.info(f"Training {len(all_model_combinations)} combinations.")
@@ -72,6 +76,7 @@ if __name__ == "__main__":
         n_cv=5,
         n_patience=55,
         model_run=None,
+        limit_data_percentage=1.0,
         processes=mp.cpu_count() // 2,
     )
     logger.info("Hyper opt script complete.")
