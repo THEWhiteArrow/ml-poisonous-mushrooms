@@ -5,8 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import RidgeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-
-# from lightgbm import LGBMClassifier
+from lightgbm import LGBMClassifier
 from xgboost import XGBClassifier
 
 from lib.models.ModelWrapper import ModelWrapper
@@ -24,7 +23,7 @@ class ModelManager:
                 ModelWrapper(model=RidgeClassifier(), allow_strings=False),
                 ModelWrapper(model=RandomForestClassifier(), allow_strings=True),
                 ModelWrapper(model=KNeighborsClassifier(), allow_strings=True),
-                # ModelWrapper(model=LGBMClassifier(), allow_strings=True),  # type: ignore
+                ModelWrapper(model=LGBMClassifier(), allow_strings=True),  # type: ignore
                 ModelWrapper(model=XGBClassifier(), allow_strings=True),  # type: ignore
             ]
 

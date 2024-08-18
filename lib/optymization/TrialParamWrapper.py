@@ -47,7 +47,7 @@ class TrialParamWrapper:
             "n_estimators": trial.suggest_int("n_estimators", 50, 500),
             # "max_depth": trial.suggest_int("max_depth", 3, 20),
             "learning_rate": trial.suggest_float("learning_rate", 1e-3, 1, log=True),
-            # "num_leaves": trial.suggest_int("num_leaves", 10, 63),
+            "num_leaves": trial.suggest_int("num_leaves", 15, 50),
             "min_child_weight": trial.suggest_float(
                 "min_child_weight", 1e-3, 100, log=True
             ),

@@ -1,6 +1,5 @@
 from typing import Callable, Optional
 import datetime as dt
-import multiprocessing as mp
 
 import optuna
 import pandas as pd
