@@ -29,6 +29,11 @@ def hyper_opt(
         model_run = dt.datetime.now().strftime("%Y%m%d%H%M")
 
     logger.info(f"Starting hyper opt for run {model_run}...")
+    logger.info(f"Using {processes} processes.")
+    logger.info(f"Using {n_optimization_trials} optimization trials.")
+    logger.info(f"Using {n_cv} cross validation.")
+    logger.info(f"Using {n_patience} patience.")
+    logger.info(f"Using {limit_data_percentage * 100}% data")
 
     logger.info("Loading data...")
     train, test = load_data()
@@ -38,9 +43,7 @@ def hyper_opt(
     # This could be a class that is injected with injector.
     all_data_size = len(train)
     limited_data_size = int(all_data_size * limit_data_percentage)
-    logger.info(
-        f"Limiting data to {limit_data_percentage * 100}% | from {all_data_size} to {limited_data_size}"
-    )
+    logger.info(f"Limiting data from {all_data_size} to {limited_data_size}")
     engineered_data = engineer_features(train.head(limited_data_size)).set_index("id")
 
     all_model_combinations = create_combinations()
