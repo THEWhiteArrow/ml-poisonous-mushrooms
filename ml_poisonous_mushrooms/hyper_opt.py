@@ -78,7 +78,7 @@ if __name__ == "__main__":
     hyper_opt(
         n_optimization_trials=125,
         n_cv=5,
-        n_patience=55,
+        n_patience=50,
         model_run=None,
         limit_data_percentage=1.0,
         processes=mp.cpu_count() // 2,
