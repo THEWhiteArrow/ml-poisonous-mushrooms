@@ -26,7 +26,7 @@ def optimize_model_and_save(
     n_cv: int,
     n_patience: int,
     i: int,
-    model_dir_path: Path,
+    output_dir_path: Path,
     hyper_opt_prefix: str,
     create_objective_func: Callable[
         [pd.DataFrame, pd.DataFrame | pd.Series, HyperOptCombination, int],
@@ -71,15 +71,21 @@ def optimize_model_and_save(
         study=study,
     )
 
-    with open(
-        os.path.join(
-            model_dir_path,
+    try:
+        os.makedirs(os.path.join(output_dir_path, f"{hyper_opt_prefix}{model_run}"))
+    except OSError:
+        pass
+
+    try:
+        results_path = os.path.join(
+            output_dir_path,
             f"{hyper_opt_prefix}{model_run}",
             f"{model_combination.name}.pkl",
-        ),
-        "wb",
-    ) as f:
-        pickle.dump(result, f)
+        )
+        pickle.dump(result, open(results_path, "wb"))
+    except Exception as e:
+        logger.error(f"Error saving model combination {combination_name}: {e}")
+        raise e
 
     del X
     del y

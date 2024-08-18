@@ -8,7 +8,7 @@ from lib.features.FeatureSet import FeatureSet
 from lib.models.HyperOptManager import HyperOptManager
 from lib.models.ModelManager import ModelManager
 from lib.pipelines.ProcessingPipelineWrapper import ProcessingPipelineWrapper
-from ml_poisonous_mushrooms.utils.data_load import load_data
+from ml_poisonous_mushrooms.data_load.data_load import load_data
 from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
 from lib.logger import setup_logger
 
@@ -66,7 +66,7 @@ def debug_pipelines():
     model_manager = ModelManager(task="classification")
     hyper_manager = HyperOptManager(
         feature_manager=feature_manager,
-        model_wrappers=model_manager.get_model_wrappers(),
+        models=model_manager.get_models(),
     )
 
     all_model_combinations = hyper_manager.get_model_combinations()
@@ -78,19 +78,9 @@ def debug_pipelines():
     y = engineered_data.copy()["class"]
 
     processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=True)
-    model_wrapper = choosen_combination.model_wrapper
-    model = model_wrapper.model
+    model = choosen_combination.model
 
-    allow_strings = model_wrapper.allow_strings
-
-    model_name = model.__class__.__name__
-    logger.info(
-        f"The model {model_name} {'allows strings' if allow_strings is True else 'does NOT allow strings'}"
-    )
-
-    pipeline = processing_pipeline_wrapper.create_pipeline(
-        model=model, allow_strings=allow_strings
-    )
+    pipeline = processing_pipeline_wrapper.create_pipeline(model=model)
 
     # processed_X = pipeline.fit_transform(X=X.copy())
 
@@ -207,7 +197,7 @@ def debug_xgboost():
     model_manager = ModelManager(task="classification")
     hyper_manager = HyperOptManager(
         feature_manager=feature_manager,
-        model_wrappers=model_manager.get_model_wrappers(),
+        models=model_manager.get_models(),
     )
 
     all_model_combinations = hyper_manager.get_model_combinations()
@@ -220,16 +210,13 @@ def debug_xgboost():
     )[0]
 
     logger.info(choosen_combination.name)
-    model_wrapper = choosen_combination.model_wrapper
-    model = model_wrapper.model
+    model = choosen_combination.model
 
     X = engineered_data.copy()[choosen_combination.feature_combination.features]
     y = engineered_data.copy()["class"]
 
     processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
-    pipeline = processing_pipeline_wrapper.create_pipeline(
-        model=model, allow_strings=model_wrapper.allow_strings
-    )
+    pipeline = processing_pipeline_wrapper.create_pipeline(model=model)
 
     acc = cross_val_score(pipeline, X, y, cv=5, scoring="accuracy")
 

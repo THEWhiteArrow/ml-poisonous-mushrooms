@@ -3,4 +3,4 @@ from pathlib import Path
 
 
 class PathManager(Enum):
-    MODELS_DIR_PATH = Path("../../models")
+    OUTPUT_DIR_PATH = Path(__file__).parent.parent.parent / "results"

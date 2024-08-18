@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import List, cast
 
@@ -9,8 +10,9 @@ from lib.models.HyperOptResultDict import HyperOptResultDict
 from lib.logger import setup_logger
 from lib.pipelines.ProcessingPipelineWrapper import ProcessingPipelineWrapper
 from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
-from ml_poisonous_mushrooms.utils.data_load import load_data, load_ensemble_config
-from models import HYPER_OPT_PREFIX, ENSEMBLE_PREFIX
+from ml_poisonous_mushrooms.data_load.data_load import load_data, load_ensemble_config
+from ml_poisonous_mushrooms.utils.PrefixManager import PrefixManager
+from ml_poisonous_mushrooms.utils.PathManager import PathManager
 
 logger = setup_logger(__name__)
 
@@ -25,7 +27,7 @@ def create_ensemble_model_and_save() -> EnsembleModel:
 
     for model_name in config["model_combination_names"]:
         model_path = Path(
-            f"models/{HYPER_OPT_PREFIX}{config['model_run']}/{model_name}.pkl"
+            f"{PathManager.OUTPUT_DIR_PATH.value}/{PrefixManager.HYPER_OPT_PREFIX}{config['model_run']}/{model_name}.pkl"
         )
 
         model_data = cast(HyperOptResultDict, pickle.load(open(model_path, "rb")))
@@ -44,12 +46,17 @@ def create_ensemble_model_and_save() -> EnsembleModel:
     logger.info("Ensemble model has been created")
 
     ensemble_model_path = Path(
-        f"models/{ENSEMBLE_PREFIX}{config['model_run']}/ensemble_model.pkl"
+        f"{PathManager.OUTPUT_DIR_PATH.value}/{PrefixManager.ENSEMBLE_PREFIX.value}{config['model_run']}/ensemble_model.pkl"
     )
 
     logger.info(f"Saving ensemble model to {ensemble_model_path}")
-    with open(ensemble_model_path, "wb") as f:
-        pickle.dump(ensemble_model, f)
+
+    try:
+        os.makedirs(ensemble_model_path)
+    except OSError:
+        pass
+
+    pickle.dump(ensemble_model, open(ensemble_model_path, "wb"))
 
     return ensemble_model
 

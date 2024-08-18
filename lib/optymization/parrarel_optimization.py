@@ -26,7 +26,7 @@ def run_parallel_optimization(
     n_optimization_trials: int,
     n_cv: int,
     n_patience: int,
-    model_dir_path: Path,
+    output_dir_path: Path,
     hyper_opt_prefix: str,
     create_objective: Callable[
         [pd.DataFrame, pd.DataFrame | pd.Series, HyperOptCombination, int],
@@ -56,7 +56,7 @@ def run_parallel_optimization(
                     n_cv,
                     n_patience,
                     i,
-                    model_dir_path,
+                    output_dir_path,
                     hyper_opt_prefix,
                     create_objective,
                 )

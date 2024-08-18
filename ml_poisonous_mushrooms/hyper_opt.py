@@ -63,7 +63,7 @@ def hyper_opt(
         n_optimization_trials=n_optimization_trials,
         n_cv=n_cv,
         n_patience=n_patience,
-        model_dir_path=PathManager.MODELS_DIR_PATH.value,
+        output_dir_path=PathManager.OUTPUT_DIR_PATH.value,
         hyper_opt_prefix=PrefixManager.HYPER_OPT_PREFIX.value,
         create_objective=create_objective,
         omit_names=omit_names,
