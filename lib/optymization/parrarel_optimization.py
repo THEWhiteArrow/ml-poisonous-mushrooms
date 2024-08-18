@@ -1,3 +1,4 @@
+from pathlib import Path
 import signal
 from typing import Callable, List, Optional
 import multiprocessing as mp
@@ -25,7 +26,8 @@ def run_parallel_optimization(
     n_optimization_trials: int,
     n_cv: int,
     n_patience: int,
-    model_dir_path: str,
+    model_dir_path: Path,
+    hyper_opt_prefix: str,
     create_objective: Callable[
         [pd.DataFrame, pd.DataFrame | pd.Series, HyperOptCombination, int],
         Callable[[optuna.Trial], float],
@@ -55,6 +57,7 @@ def run_parallel_optimization(
                     n_patience,
                     i,
                     model_dir_path,
+                    hyper_opt_prefix,
                     create_objective,
                 )
                 for i, model_combination in enumerate(all_model_combinations)

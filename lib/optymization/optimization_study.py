@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Callable
 import gc
 
@@ -10,7 +11,6 @@ from lib.models.HyperOptCombination import HyperOptCombination
 from lib.models.HyperOptResultDict import HyperOptResultDict
 from lib.optymization.EarlyStoppingCallback import EarlyStoppingCallback
 from lib.logger import setup_logger
-from models import HYPER_OPT_PREFIX
 
 
 logger = setup_logger(__name__)
@@ -26,7 +26,8 @@ def optimize_model_and_save(
     n_cv: int,
     n_patience: int,
     i: int,
-    model_dir_path: str,
+    model_dir_path: Path,
+    hyper_opt_prefix: str,
     create_objective_func: Callable[
         [pd.DataFrame, pd.DataFrame | pd.Series, HyperOptCombination, int],
         Callable[[optuna.Trial], float],
@@ -73,7 +74,7 @@ def optimize_model_and_save(
     with open(
         os.path.join(
             model_dir_path,
-            f"{HYPER_OPT_PREFIX}{model_run}",
+            f"{hyper_opt_prefix}{model_run}",
             f"{model_combination.name}.pkl",
         ),
         "wb",

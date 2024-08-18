@@ -4,14 +4,15 @@ import multiprocessing as mp
 
 from lib.logger import setup_logger
 from lib.optymization.parrarel_optimization import run_parallel_optimization
+from ml_poisonous_mushrooms.data_load.data_load import load_data
 from ml_poisonous_mushrooms.engineering.engineering_combinations import (
     create_combinations,
 )
 from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
 from ml_poisonous_mushrooms.optimization.objective import create_objective
-from ml_poisonous_mushrooms.utils.data_load import load_data
-from models.existing_models import get_existing_models
-from models import MODELS_DIR_PATH
+from ml_poisonous_mushrooms.utils.PrefixManager import PrefixManager
+from ml_poisonous_mushrooms.utils.PathManager import PathManager
+from ml_poisonous_mushrooms.utils.existing_models import get_existing_models
 
 logger = setup_logger(__name__)
 
@@ -54,7 +55,8 @@ def hyper_opt(
         n_optimization_trials=n_optimization_trials,
         n_cv=n_cv,
         n_patience=n_patience,
-        model_dir_path=MODELS_DIR_PATH,
+        model_dir_path=PathManager.MODELS_DIR_PATH.value,
+        hyper_opt_prefix=PrefixManager.HYPER_OPT_PREFIX.value,
         create_objective=create_objective,
         omit_names=omit_names,
         processes=processes,
