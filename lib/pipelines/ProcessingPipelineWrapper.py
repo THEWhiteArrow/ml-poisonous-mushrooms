@@ -20,7 +20,7 @@ class ProcessingPipelineWrapper:
     """Whether or not the pipeline should output pandas DataFrame."""
 
     def create_pipeline(
-        self, allow_strings: bool = True, model: Optional[BaseEstimator] = None
+        self, model: Optional[BaseEstimator] = None, force_encoding: bool = False
     ) -> Pipeline:
         """A function that is to automate the process of processing the data so that it is ready to be trained on made the prediction.
 
@@ -31,6 +31,15 @@ class ProcessingPipelineWrapper:
         Returns:
             Pipeline: A processing pipeline.
         """
+
+        purely_numerical_model_names: List[str] = ["Ridge"]
+
+        allows_strings = True
+        if model is not None and any(
+            numerical_model_name in model.__class__.__name__
+            for numerical_model_name in purely_numerical_model_names
+        ):
+            allows_strings = False
 
         transformer_list: Sequence[Tuple[str, TransformerMixin | Pipeline]] = []
 
@@ -47,7 +56,7 @@ class ProcessingPipelineWrapper:
 
         transformer_list.append(("numerical_transformer", numerical_transformer))
 
-        if allow_strings is False:
+        if allows_strings is False or force_encoding is True:
             string_transformer = ColumnTransformer(
                 transformers=[
                     (

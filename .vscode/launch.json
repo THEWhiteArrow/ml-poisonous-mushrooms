@@ -17,6 +17,13 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/ml_poisonous_mushrooms/debug.py",
 			"console": "internalConsole"
+		},
+		{
+			"name": "Ensemble",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${workspaceFolder}/ml_poisonous_mushrooms/ensemble.py",
+			"console": "internalConsole"
 		}
 	]
 }

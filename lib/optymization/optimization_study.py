@@ -5,9 +5,10 @@ import gc
 
 import optuna
 import pandas as pd
+import pickle
 
 from lib.models.HyperOptCombination import HyperOptCombination
-from lib.models.HyperOptResult import HyperOptResult
+from lib.models.HyperOptResultDict import HyperOptResultDict
 from lib.optymization.EarlyStoppingCallback import EarlyStoppingCallback
 from lib.logger import setup_logger
 from models import HYPER_OPT_PREFIX
@@ -54,21 +55,23 @@ def optimize_model_and_save(
             best_score} with params: {best_params}"
     )
 
-    result = HyperOptResult(
+    result = HyperOptResultDict(
         name=model_combination.name,
         score=best_score,
         params=best_params,
-        model=model_combination.model_wrapper.model,
+        model=model_combination.model,
         features=model_combination.feature_combination.features,
     )
 
-    result.pickle(
-        path=os.path.join(
+    with open(
+        os.path.join(
             model_dir_path,
             f"{HYPER_OPT_PREFIX}{model_run}",
             f"{model_combination.name}.pkl",
-        )
-    )
+        ),
+        "wb",
+    ) as f:
+        pickle.dump(result, f)
 
     del X
     del y

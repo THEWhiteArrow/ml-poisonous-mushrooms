@@ -14,7 +14,6 @@ logger = setup_logger(__name__)
 @dataclass
 class EnsembleModel(BaseEstimator):
     models: List[BaseEstimator]
-    allow_string_list: List[bool]
     combination_names: List[str]
     combination_feature_lists: List[List[str]]
     scores: List[float]
@@ -25,9 +24,7 @@ class EnsembleModel(BaseEstimator):
     def fit(self, X: pd.DataFrame, y: pd.DataFrame | pd.Series) -> "EnsembleModel":
         for i, model in enumerate(self.models):
             logger.info(f"Fitting model : {self.combination_names[i]}")
-            processing_pipeline = ProcessingPipelineWrapper().create_pipeline(
-                allow_strings=self.allow_string_list[i]
-            )
+            processing_pipeline = ProcessingPipelineWrapper().create_pipeline()
 
             model.fit(processing_pipeline.fit_transform(X[self.combination_feature_lists[i]]), y)  # type: ignore
 
@@ -39,9 +36,7 @@ class EnsembleModel(BaseEstimator):
 
         for i, model in enumerate(self.models):
             logger.info(f"Predicting with : {self.combination_names[i]}")
-            processing_pipeline = ProcessingPipelineWrapper().create_pipeline(
-                allow_strings=self.allow_string_list[i]
-            )
+            processing_pipeline = ProcessingPipelineWrapper().create_pipeline()
 
             prediction_series = pd.Series(index=X.index, data=model.predict(processing_pipeline.fit_transform(X[self.combination_feature_lists[i]])))  # type: ignore
 

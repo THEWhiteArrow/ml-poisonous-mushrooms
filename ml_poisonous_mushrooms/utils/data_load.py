@@ -1,6 +1,8 @@
+import json
 import os
-from typing import Tuple
+from typing import List, Tuple, TypedDict, cast
 import pandas as pd
+from dataclasses import dataclass
 
 from data import DATA_DIR_PATH
 from lib.logger import setup_logger
@@ -34,3 +36,42 @@ def load_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
         )
 
     return train, test
+
+
+@dataclass
+class EnsembleConfigDict(TypedDict):
+    model_run: str
+    model_combination_names: List[str]
+
+
+def load_ensemble_config() -> EnsembleConfigDict:
+    """A function that is to load the ensemble config.
+
+    Raises:
+        FileNotFoundError: If the ensemble config is not found in the data folder
+
+    Returns:
+        EnsembleConfigDict: The ensemble config dictionary.
+    """
+
+    ensemble_config_path = (
+        os.path.dirname(os.path.abspath(__file__)) + "/../ensemble_config.json"
+    )
+
+    try:
+        ensemble_config = cast(
+            EnsembleConfigDict, json.load(open(ensemble_config_path))
+        )
+
+    except FileNotFoundError as e:
+        logger.error(e)
+        raise FileNotFoundError(
+            "Ensemble config not found. Please create a ensemble_config.json file in the root of the project."
+        )
+    except Exception as e:
+        logger.error(e)
+        raise Exception(
+            "An error occured while loading the ensemble config. Please check the ensemble_config.json file."
+        )
+
+    return ensemble_config

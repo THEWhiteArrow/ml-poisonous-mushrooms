@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 
+from sklearn.base import BaseEstimator
+
 from lib.features.FeatureCombination import FeatureCombination
-from lib.models.ModelWrapper import ModelWrapper
 
 
 @dataclass
 class HyperOptCombination:
-    model_wrapper: ModelWrapper
     name: str
+    model: BaseEstimator
     feature_combination: FeatureCombination

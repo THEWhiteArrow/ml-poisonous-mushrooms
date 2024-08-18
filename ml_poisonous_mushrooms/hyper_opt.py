@@ -30,25 +30,20 @@ def create_objective(
 ) -> Callable[[optuna.Trial], float]:
 
     processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
-    model_wrapper = model_combination.model_wrapper
-    model = model_wrapper.model
-    allow_strings = model_wrapper.allow_strings
+    model = model_combination.model
 
     def objective(
         trial: optuna.Trial,
     ) -> float:
 
         params = TrialParamWrapper().get_params(
-            model_name=model_combination.model_wrapper.model.__class__.__name__,
+            model_name=model_combination.model.__class__.__name__,
             trial=trial,
         )
 
         model.set_params(**params)
 
-        pipeline = processing_pipeline_wrapper.create_pipeline(
-            model=model,
-            allow_strings=allow_strings,
-        )
+        pipeline = processing_pipeline_wrapper.create_pipeline(model=model)
 
         scores = cross_val_score(
             estimator=pipeline, X=X, y=y, cv=n_cv, scoring="accuracy"
@@ -129,7 +124,7 @@ def hyper_opt(
 
     hyper_manager = HyperOptManager(
         feature_manager=feature_manager,
-        model_wrappers=model_manager.get_model_wrappers(use_sv=False),
+        models=model_manager.get_models(use_sv=False),
     )
 
     all_model_combinations = hyper_manager.get_model_combinations()
