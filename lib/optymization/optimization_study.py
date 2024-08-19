@@ -28,6 +28,7 @@ def optimize_model_and_save(
     i: int,
     output_dir_path: Path,
     hyper_opt_prefix: str,
+    study_prefix: str,
     create_objective_func: Callable[
         [pd.DataFrame, pd.DataFrame | pd.Series, HyperOptCombination, int],
         Callable[[optuna.Trial], float],
@@ -43,9 +44,17 @@ def optimize_model_and_save(
         name=model_combination.name, patience=n_patience
     )
 
+    try:
+        os.makedirs(os.path.join(output_dir_path, f"{study_prefix}{model_run}"))
+    except OSError:
+        pass
+
     # Create an Optuna study for hyperparameter optimization
     study = optuna.create_study(
-        direction=direction, study_name=f"optuna_{model_combination.name}"
+        direction=direction,
+        study_name=f"optuna_{model_combination.name}",
+        load_if_exists=True,
+        storage=f"sqlite:///{output_dir_path}/{study_prefix}{model_run}/{model_combination.name}.db",
     )
 
     study.optimize(
@@ -68,7 +77,6 @@ def optimize_model_and_save(
         params=best_params,
         model=model_combination.model,
         features=model_combination.feature_combination.features,
-        study=study,
     )
 
     try:

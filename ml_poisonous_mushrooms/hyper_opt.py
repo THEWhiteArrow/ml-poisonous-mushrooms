@@ -28,6 +28,11 @@ def hyper_opt(
     if model_run is None:
         model_run = dt.datetime.now().strftime("%Y%m%d%H%M")
 
+    if limit_data_percentage < 0.0 or limit_data_percentage > 1.0:
+        raise ValueError(
+            f"Invalid limit data percentage value: {limit_data_percentage}"
+        )
+
     logger.info(f"Starting hyper opt for run {model_run}...")
     logger.info(f"Using {processes} processes.")
     logger.info(f"Using {n_optimization_trials} optimization trials.")
@@ -65,6 +70,7 @@ def hyper_opt(
         n_patience=n_patience,
         output_dir_path=PathManager.OUTPUT_DIR_PATH.value,
         hyper_opt_prefix=PrefixManager.HYPER_OPT_PREFIX.value,
+        study_prefix=PrefixManager.STUDY_PREFIX.value,
         create_objective=create_objective,
         omit_names=omit_names,
         processes=processes,

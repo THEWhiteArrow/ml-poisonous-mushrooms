@@ -1,7 +1,6 @@
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, TypedDict
 from dataclasses import dataclass
 
-import optuna
 from sklearn.base import BaseEstimator
 
 
@@ -12,4 +11,3 @@ class HyperOptResultDict(TypedDict):
     features: List[str]
     params: Dict[str, Any]
     score: float
-    study: Optional[optuna.Study]

@@ -28,6 +28,7 @@ def run_parallel_optimization(
     n_patience: int,
     output_dir_path: Path,
     hyper_opt_prefix: str,
+    study_prefix: str,
     create_objective: Callable[
         [pd.DataFrame, pd.DataFrame | pd.Series, HyperOptCombination, int],
         Callable[[optuna.Trial], float],
@@ -58,6 +59,7 @@ def run_parallel_optimization(
                     i,
                     output_dir_path,
                     hyper_opt_prefix,
+                    study_prefix,
                     create_objective,
                 )
                 for i, model_combination in enumerate(all_model_combinations)
