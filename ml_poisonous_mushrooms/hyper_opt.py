@@ -90,9 +90,9 @@ if __name__ == "__main__":
         n_optimization_trials=125,
         n_cv=5,
         n_patience=36,
-        min_percentage_improvement=0.05,
+        min_percentage_improvement=0.01,
         model_run=None,
         limit_data_percentage=1.0,
-        processes=mp.cpu_count() // 2,
+        processes=mp.cpu_count() // 3,
     )
     logger.info("Hyper opt script complete.")
