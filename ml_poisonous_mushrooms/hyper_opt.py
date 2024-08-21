@@ -21,6 +21,7 @@ def hyper_opt(
     n_optimization_trials: int,
     n_cv: int,
     n_patience: int,
+    min_percentage_improvement: float,
     model_run: Optional[str],
     limit_data_percentage: float,
     processes: Optional[int] = None,
@@ -38,6 +39,9 @@ def hyper_opt(
     logger.info(f"Using {n_optimization_trials} optimization trials.")
     logger.info(f"Using {n_cv} cross validation.")
     logger.info(f"Using {n_patience} patience.")
+    logger.info(
+        f"Using {min_percentage_improvement * 100}% min percentage improvement."
+    )
     logger.info(f"Using {limit_data_percentage * 100}% data")
 
     logger.info("Loading data...")
@@ -68,6 +72,7 @@ def hyper_opt(
         n_optimization_trials=n_optimization_trials,
         n_cv=n_cv,
         n_patience=n_patience,
+        min_percentage_improvement=min_percentage_improvement,
         output_dir_path=PathManager.OUTPUT_DIR_PATH.value,
         hyper_opt_prefix=PrefixManager.HYPER_OPT_PREFIX.value,
         study_prefix=PrefixManager.STUDY_PREFIX.value,
@@ -84,7 +89,8 @@ if __name__ == "__main__":
     hyper_opt(
         n_optimization_trials=125,
         n_cv=5,
-        n_patience=50,
+        n_patience=36,
+        min_percentage_improvement=0.05,
         model_run=None,
         limit_data_percentage=1.0,
         processes=mp.cpu_count() // 2,

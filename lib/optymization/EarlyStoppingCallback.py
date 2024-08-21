@@ -13,6 +13,7 @@ logger = setup_logger(__name__)
 class EarlyStoppingCallback:
     name: str
     patience: int
+    min_percentage_improvement: float = 0.0
     best_value: Optional[float] = None
     no_improvement_count: int = 0
 
@@ -21,7 +22,9 @@ class EarlyStoppingCallback:
         current_best_value = study.best_value
 
         # Check if the best value has improved
-        if self.best_value is None or current_best_value > self.best_value:
+        if self.best_value is None or current_best_value > self.best_value * (
+            1.0 + self.min_percentage_improvement
+        ):
             self.best_value = current_best_value
             self.no_improvement_count = 0
         else:
@@ -30,6 +33,8 @@ class EarlyStoppingCallback:
         # Stop study if there has been no improvement for `self.patience` trials
         if self.no_improvement_count >= self.patience:
             logger.info(
-                f"Early stopping the study: {self.name} due to no improvement for {self.patience} trials | on trial: {trial.number}"
+                f"Early stopping the study: {self.name} due to "
+                + f"no {self.min_percentage_improvement * 100}% improvement for "
+                + f"{self.patience} trials | on trial: {trial.number}"
             )
             study.stop()

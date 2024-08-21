@@ -25,6 +25,7 @@ def optimize_model_and_save(
     n_optimization_trials: int,
     n_cv: int,
     n_patience: int,
+    min_percentage_improvement: float,
     i: int,
     output_dir_path: Path,
     hyper_opt_prefix: str,
@@ -41,7 +42,9 @@ def optimize_model_and_save(
     y = y.copy()
 
     early_stopping = EarlyStoppingCallback(
-        name=model_combination.name, patience=n_patience
+        name=model_combination.name,
+        patience=n_patience,
+        min_percentage_improvement=min_percentage_improvement,
     )
 
     try:
