@@ -89,10 +89,10 @@ if __name__ == "__main__":
     hyper_opt(
         n_optimization_trials=125,
         n_cv=5,
-        n_patience=36,
+        n_patience=30,
         min_percentage_improvement=0.01,
-        model_run=None,
-        limit_data_percentage=1.0,
-        processes=mp.cpu_count() // 3,
+        model_run="202408191345",
+        limit_data_percentage=0.125,
+        processes=1,
     )
     logger.info("Hyper opt script complete.")

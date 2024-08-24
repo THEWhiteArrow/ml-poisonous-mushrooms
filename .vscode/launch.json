@@ -5,6 +5,13 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Debug",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${workspaceFolder}/ml_poisonous_mushrooms/debug.py",
+			"console": "internalConsole"
+		},
+		{
 			"name": "Hyper Opt",
 			"type": "debugpy",
 			"request": "launch",
@@ -12,10 +19,10 @@
 			"console": "internalConsole"
 		},
 		{
-			"name": "Debug",
+			"name": "Analysis",
 			"type": "debugpy",
 			"request": "launch",
-			"program": "${workspaceFolder}/ml_poisonous_mushrooms/debug.py",
+			"program": "${workspaceFolder}/ml_poisonous_mushrooms/analysis.py",
 			"console": "internalConsole"
 		},
 		{

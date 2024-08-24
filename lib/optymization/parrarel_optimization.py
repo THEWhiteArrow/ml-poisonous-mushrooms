@@ -42,6 +42,31 @@ def run_parallel_optimization(
 
     logger.info(f"Running optimization with {processes} processes")
 
+    # --- TODO ---
+    # 1. Differentiate between the models that by default can use multiple cores and those that can't.
+    # 2. If the model can't use multiple cores, then set mutliple models to run at the same time.
+    # 3. If the model can use multiple cores, then set only one model to run at the same time.
+
+    parallel_model_prefixes = ["Ridge", "KNeighbors"]
+    sequential_model_prefixes = ["RandomForest", "XGB", "LGBM"]
+
+    sequenctial_model_combinations = [
+        model_combination
+        for model_combination in all_model_combinations
+        if any(  # type: ignore
+            model_combination.name.startswith(prefix)
+            for prefix in sequential_model_prefixes
+        )
+    ]
+
+    parallel_model_combinations = [
+        model_combination
+        for model_combination in all_model_combinations
+        if any(  # type: ignore
+            model_combination.name.startswith(prefix)
+            for prefix in parallel_model_prefixes
+        )
+    ]
     # Set up multiprocessing pool
     with mp.Pool(processes=processes, initializer=init_worker) as pool:
         # Map each iteration of the loop to a process
@@ -64,7 +89,32 @@ def run_parallel_optimization(
                     study_prefix,
                     create_objective,
                 )
-                for i, model_combination in enumerate(all_model_combinations)
+                for i, model_combination in enumerate(parallel_model_combinations)
+                if model_combination.name not in omit_names
+            ],
+        )
+
+    with mp.Pool(processes=1, initializer=init_worker) as pool:
+        _ = pool.starmap(
+            optimize_model_and_save,
+            [
+                (
+                    model_run,
+                    direction,
+                    model_combination,
+                    X,
+                    y,
+                    n_optimization_trials,
+                    n_cv,
+                    n_patience,
+                    min_percentage_improvement,
+                    i,
+                    output_dir_path,
+                    hyper_opt_prefix,
+                    study_prefix,
+                    create_objective,
+                )
+                for i, model_combination in enumerate(sequenctial_model_combinations)
                 if model_combination.name not in omit_names
             ],
         )

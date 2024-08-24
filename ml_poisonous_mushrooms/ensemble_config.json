@@ -1,4 +1,10 @@
 {
-	"model_combination_names": [],
-	"model_run": ""
+	"model_combination_names": [
+		"RidgeClassifier_stem_gill_ring_and_veil_cap_other_",
+		"LGBMClassifier_stem_gill_ring_and_veil_cap_",
+		"RandomForestClassifier_stem_gill_ring_and_veil_cap_other_",
+		"KNeighborsClassifier_stem_gill_ring_and_veil_cap_other_",
+		"XGBClassifier_stem_gill_ring_and_veil_cap_other_"
+	],
+	"model_run": "202408191345"
 }

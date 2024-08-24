@@ -55,9 +55,9 @@ def optimize_model_and_save(
     # Create an Optuna study for hyperparameter optimization
     study = optuna.create_study(
         direction=direction,
-        study_name=f"optuna_{model_combination.name}",
+        study_name=f"{model_combination.name}",
         load_if_exists=True,
-        storage=f"sqlite:///{output_dir_path}/{study_prefix}{model_run}/{model_combination.name}.db",
+        storage=f"sqlite:///{output_dir_path}/{study_prefix}{model_run}/studies.db",
     )
 
     study.optimize(
@@ -69,6 +69,7 @@ def optimize_model_and_save(
     # Save the best parameters and score
     best_params = study.best_params
     best_score = study.best_value
+    best_model = model_combination.model.set_params(**best_params)
 
     logger.info(
         f"Model combination: {combination_name} has scored: {best_score} with params: {best_params}"
@@ -78,7 +79,7 @@ def optimize_model_and_save(
         name=model_combination.name,
         score=best_score,
         params=best_params,
-        model=model_combination.model,
+        model=best_model,
         features=model_combination.feature_combination.features,
     )
 
