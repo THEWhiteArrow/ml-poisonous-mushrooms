@@ -22,7 +22,7 @@ catboost = "^1.2.7"
 ipykernel = "^6.29.5"
 
 [tool.poe.tasks]
-hyper_opt = "poetry run python ml_poisonous_mushrooms/hyper_opt.py"
+hyper = "poetry run python ml_poisonous_mushrooms/hyper_task.py"
 
 [build-system]
 requires = ["poetry-core"]
