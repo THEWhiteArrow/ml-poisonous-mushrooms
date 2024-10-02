@@ -27,3 +27,6 @@ hyper_opt = "poetry run python ml_poisonous_mushrooms/hyper_opt.py"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[virtualenvs]
+in-project = true
