@@ -19,7 +19,8 @@ def clean_categorical(X: pd.DataFrame) -> pd.DataFrame:
     """
     data = X.copy()
     categorical_outliers_frequency_limit = 0.01
-    logger.info(f"Outliers frequency limit is {categorical_outliers_frequency_limit}")
+    logger.info("Outliers frequency limit is" +
+                f"{categorical_outliers_frequency_limit}")
 
     categorical_columns: List[str] = X.select_dtypes(
         exclude=["number"]
@@ -40,10 +41,11 @@ def clean_categorical(X: pd.DataFrame) -> pd.DataFrame:
 
         data.loc[:, column] = (
             pd.Series(
-                data[column].apply(lambda el: el if el not in outliers else "nan")
+                data[column].apply(
+                    lambda el: el if el not in outliers else "dna")
             )
             .rename(column)
-            .fillna("nan")
+            .fillna("dna")
             .astype("category")
         )
 
@@ -61,6 +63,21 @@ def label_targets(X: pd.DataFrame) -> pd.DataFrame:
     """
     data = X.copy()
     data["class"] = data["class"].map({"p": 1, "e": 0})
+
+    return data
+
+
+def unlabel_targets(X: pd.DataFrame) -> pd.DataFrame:
+    """A function that unlabels the targets in the dataset.
+
+    Args:
+        X (pd.DataFrame): A dataframe to unlabel.
+
+    Returns:
+        pd.DataFrame: An unlabeled dataframe.
+    """
+    data = X.copy()
+    data["class"] = data["class"].map({1: "p", 0: "e"})
 
     return data
 

@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Optional
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline
 
 from lib.logger import setup_logger
 from lib.pipelines.ProcessingPipelineWrapper import ProcessingPipelineWrapper
@@ -17,32 +18,50 @@ class EnsembleModel(BaseEstimator):
     combination_names: List[str]
     combination_feature_lists: List[List[str]]
     scores: List[float]
-
-    # --- NOTE IMPORTANT ---
-    # Data needs to be processed both for fitting and trasforming
+    processing_pipelines: Optional[List[Pipeline]] = None
+    predictions: Optional[List[pd.Series]] = None
 
     def fit(self, X: pd.DataFrame, y: pd.DataFrame | pd.Series) -> "EnsembleModel":
+        logger.info("Fitting ensemble model")
+        self.processing_pipelines = []
+
         for i, model in enumerate(self.models):
             logger.info(f"Fitting model : {self.combination_names[i]}")
-            processing_pipeline = ProcessingPipelineWrapper().create_pipeline()
+            pipeline = ProcessingPipelineWrapper().create_pipeline(
+                model=model
+            )
 
-            model.fit(processing_pipeline.fit_transform(X[self.combination_feature_lists[i]]), y)  # type: ignore
+            pipeline.fit(X[self.combination_feature_lists[i]], y)
+
+            self.processing_pipelines.append(pipeline)
 
         return self
 
     def predict(self, X: pd.DataFrame) -> pd.Series:
+        logger.info("Predicting with ensemble model")
+        self.predictions = []
 
-        predictions: pd.DataFrame = pd.DataFrame(index=X.index)
+        all_predictions: pd.DataFrame = pd.DataFrame(index=X.index)
+        if self.processing_pipelines is None or len(self.processing_pipelines) != len(self.models):
+            raise ValueError(
+                "The ensemble model either has not been fitted or is wrongly fitted")
 
         for i, model in enumerate(self.models):
             logger.info(f"Predicting with : {self.combination_names[i]}")
-            processing_pipeline = ProcessingPipelineWrapper().create_pipeline()
 
-            prediction_series = pd.Series(index=X.index, data=model.predict(processing_pipeline.fit_transform(X[self.combination_feature_lists[i]])))  # type: ignore
+            raw_prediction = self.processing_pipelines[i].predict(
+                X[self.combination_feature_lists[i]]
+            )
 
-            predictions = predictions.join(prediction_series, how="left")
+            prediction = pd.Series(
+                raw_prediction, index=X.index, name=self.combination_names[i])
 
-        combined_prediction = self._combine_classification_predictions(predictions)
+            self.predictions.append(prediction.copy())
+
+            all_predictions = all_predictions.join(prediction, how="left")
+
+        combined_prediction = self._combine_classification_predictions(
+            all_predictions)
 
         return combined_prediction
 

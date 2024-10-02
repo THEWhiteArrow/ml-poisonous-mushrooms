@@ -1,6 +1,11 @@
+from typing import cast
+import time
+import json
 import numpy as np
 
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import RidgeClassifier
 from sklearn.model_selection import cross_val_score
 
 from lib.features.FeatureManager import FeatureManager
@@ -20,7 +25,8 @@ def debug_pipelines():
     train, test = load_data()
 
     logger.info("Engineering data...")
-    engineered_data = engineer_features(train.head(10000 * 1000)).set_index("id")
+    engineered_data = engineer_features(
+        train.head(10000 * 1000)).set_index("id")
 
     feature_manager = FeatureManager(
         feature_sets=[
@@ -38,7 +44,8 @@ def debug_pipelines():
             FeatureSet(
                 name="cap",
                 is_optional=True,
-                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
+                features=["cap-diameter", "cap-shape",
+                          "cap-surface", "cap-color"],
             ),
             FeatureSet(
                 name="gill",
@@ -74,7 +81,8 @@ def debug_pipelines():
     choosen_combination = all_model_combinations[13]
     logger.info(choosen_combination.name)
 
-    X = engineered_data.copy()[choosen_combination.feature_combination.features]
+    X = engineered_data.copy(
+    )[choosen_combination.feature_combination.features]
     y = engineered_data.copy()["class"]
 
     processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=True)
@@ -84,7 +92,8 @@ def debug_pipelines():
 
     # processed_X = pipeline.fit_transform(X=X.copy())
 
-    scores = cross_val_score(estimator=pipeline, X=X, y=y, cv=5, scoring="accuracy")
+    scores = cross_val_score(estimator=pipeline, X=X,
+                             y=y, cv=5, scoring="accuracy")
 
     logger.info(f"Accuracy scores: {scores}")
     logger.info(f"Avg: {scores.mean()}")
@@ -122,7 +131,8 @@ def debug_ensamble():
                 predictions.loc[predictions[name].eq(target)].index, target
             ] += scaled_scores[unique_names.index(name)]
 
-    votes["decision"] = votes.apply(lambda row: row[unique_targets].idxmax(), axis=1)
+    votes["decision"] = votes.apply(
+        lambda row: row[unique_targets].idxmax(), axis=1)
 
     print(votes)
 
@@ -151,7 +161,8 @@ def debug_xgboost():
     train, test = load_data()
 
     logger.info("Engineering data...")
-    engineered_data = engineer_features(train.head(1100 * 1000)).set_index("id")
+    engineered_data = engineer_features(
+        train.head(1100 * 1000)).set_index("id")
 
     feature_manager = FeatureManager(
         feature_sets=[
@@ -169,7 +180,8 @@ def debug_xgboost():
             FeatureSet(
                 name="cap",
                 is_optional=True,
-                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
+                features=["cap-diameter", "cap-shape",
+                          "cap-surface", "cap-color"],
             ),
             FeatureSet(
                 name="gill",
@@ -212,10 +224,12 @@ def debug_xgboost():
     logger.info(choosen_combination.name)
     model = choosen_combination.model
 
-    X = engineered_data.copy()[choosen_combination.feature_combination.features]
+    X = engineered_data.copy(
+    )[choosen_combination.feature_combination.features]
     y = engineered_data.copy()["class"]
 
-    processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
+    processing_pipeline_wrapper = ProcessingPipelineWrapper(
+        pandas_output=False)
     pipeline = processing_pipeline_wrapper.create_pipeline(model=model)
 
     acc = cross_val_score(pipeline, X, y, cv=5, scoring="accuracy")
@@ -223,9 +237,70 @@ def debug_xgboost():
     logger.info(f"Accuracy: {acc.mean()}")
 
 
+def debug_cv():
+    logger.info("Loading data...")
+    train, test = load_data()
+
+    engineered_data = engineer_features(train.head(int(len(train) * 0.1))).set_index(
+        "id"
+    )
+
+    # model = RandomForestClassifier()
+    model = RidgeClassifier()
+
+    pipeline = ProcessingPipelineWrapper(pandas_output=False).create_pipeline(
+        model=model
+    )
+
+    X = engineered_data.copy().drop(columns=["class"])
+    y = engineered_data.copy()["class"]
+
+    # output = pipeline[:-1].fit_transform(X_train, y_train)
+    results = {}
+
+    score_methods = ["accuracy", "f1", "precision", "recall"]
+    for score_method in score_methods:
+        logger.info(f"Calculating {score_method}...")
+        results[score_method] = cross_val_score(
+            estimator=pipeline, X=X, y=y, cv=5, scoring=score_method
+        ).tolist()
+
+    logger.info("Results:")
+    for score_method in score_methods:
+        logger.info(f"{score_method}: {json.dumps(results[score_method])}")
+    logger.info("done")
+
+
+def measure_time() -> float:
+    # Generate two large random matrices
+    matrix_size = 15000  # Adjust size if it runs too fast or too slow
+    A = np.random.rand(matrix_size, matrix_size)
+    B = np.random.rand(matrix_size, matrix_size)
+    # Measure time to multiply the matrices
+    start_time = time.time()
+    # Perform matrix multiplication
+    C = np.dot(A, B)
+    # Measure end time
+    end_time = time.time()
+    # Calculate time taken
+    time_taken = end_time - start_time
+    # print(f"Matrix multiplication took {time_taken:.2f} seconds")
+    return time_taken
+
+
+def measure_time_n_times(n: int) -> float:
+    times = []
+    for i in range(n):
+        times.append(measure_time())
+    return cast(float, np.mean(times))
+
+
 if __name__ == "__main__":
     # debug_pipelines()
     # debug_ensamble()
     # debug_enumerate()
-    debug_xgboost()
+    # debug_xgboost()
+    # debug_cv()
+
+    print(measure_time_n_times(5))
     logger.info("Debugging done")

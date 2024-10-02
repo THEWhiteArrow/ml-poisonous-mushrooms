@@ -1,3 +1,4 @@
+from typing import Optional
 import optuna
 import pandas as pd
 
@@ -9,10 +10,12 @@ from ml_poisonous_mushrooms.utils.PathManager import PathManager
 logger = setup_logger(__name__)
 
 
-def analyse(
-    model_run: str,
+def analyse_hyper(
+    model_run: Optional[str],
     display_plots: bool,
 ) -> None:
+    if model_run is None:
+        raise ValueError("Model run must be specified.")
     logger.info(f"Starting analysis for run {model_run}...")
 
     logger.info("Veryfing existing models...")
@@ -39,14 +42,18 @@ def analyse(
             study_prefix=PrefixManager.STUDY_PREFIX.value,
         )
         for study in hyper_opt_studies:
-            logger.info(f"Study {study.study_name} has {len(study.trials)} trials.")
 
-            optuna.visualization.plot_optimization_history(study).show()
+            logger.info(
+                f"Study {study.study_name}" +
+                f" has {len(study.trials)} trials."
+            )
+
+            # optuna.visualization.plot_optimization_history(study).show()
             optuna.visualization.plot_slice(study).show()
-            optuna.visualization.plot_param_importances(study).show()
+            # optuna.visualization.plot_param_importances(study).show()
 
 
 if __name__ == "__main__":
-    logger.info("Starting analysis...")
-    analyse(model_run="202408191345", display_plots=False)
+    logger.info("Starting hyper analysis...")
+    analyse_hyper(model_run="202409260000", display_plots=True)
     logger.info("Analysis complete.")

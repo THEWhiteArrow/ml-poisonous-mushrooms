@@ -17,7 +17,8 @@ def load_hyper_opt_results(
 ) -> List[HyperOptResultDict]:
     logger.info(f"Loading hyper opt results for run {model_run}...")
 
-    hyper_opt_results_dir_path = output_dit_path / f"{hyper_opt_prefix}{model_run}"
+    hyper_opt_results_dir_path = output_dit_path / \
+        f"{hyper_opt_prefix}{model_run}"
 
     if not hyper_opt_results_dir_path.exists():
         logger.error(f"Directory {hyper_opt_results_dir_path} does not exist.")
@@ -30,7 +31,8 @@ def load_hyper_opt_results(
     for file_path in hyper_opt_results_dir_path.iterdir():
         if file_path.is_file() and file_path.suffix == ".pkl":
             logger.info(f"Loading {file_path}...")
-            result = cast(HyperOptResultDict, pickle.load(open(file_path, "rb")))
+            result = cast(HyperOptResultDict,
+                          pickle.load(open(file_path, "rb")))
             hyper_opt_results.append(result)
 
     logger.info(f"Loaded {len(hyper_opt_results)} hyper opt results.")
@@ -59,15 +61,19 @@ def load_hyper_opt_studies(
 
             storage = f"sqlite:///{file_path}"
 
-            frozen_studies = optuna.storages.RDBStorage(storage).get_all_studies()
+            frozen_studies = optuna.storages.RDBStorage(
+                storage).get_all_studies()
 
-            hyper_opt_studies = [
-                optuna.study.load_study(
-                    study_name=study.study_name,
-                    storage=storage,
-                )
-                for study in frozen_studies
-            ]
+            hyper_opt_studies.extend(
+                [
+                    optuna.study.load_study(
+                        study_name=study.study_name,
+                        storage=storage,
+                    )
+                    for study in frozen_studies
+
+                ]
+            )
 
     logger.info(f"Loaded {len(hyper_opt_studies)} hyper opt studies.")
 

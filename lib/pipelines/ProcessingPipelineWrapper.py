@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Tuple, cast
+from typing import List, Optional, Tuple, cast
 from joblib import Memory
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.discriminant_analysis import StandardScaler
 from sklearn.impute import SimpleImputer
@@ -19,68 +19,126 @@ class ProcessingPipelineWrapper:
     pandas_output: bool = False
     """Whether or not the pipeline should output pandas DataFrame."""
 
+    def _is_string_allowed(
+        self, model: Optional[BaseEstimator], allow_strings: Optional[bool]
+    ) -> bool:
+        """A function that checks if the model is allowed to have string columns.
+
+        Args:
+            model (Optional[BaseEstimator]): A model that is supposed to make predictions.
+            allow_strings (bool): Whether or not all the data should have float types.
+
+        Returns:
+            bool: Whether or not the model is allowed to have string columns. Defaults to False if the model is None and allow_strings is None.
+        """
+
+        purely_numerical_model_names: List[str] = [
+            "ridge",
+            "kneighbors",
+            "svc",
+            "randomforest",
+            "lgb",
+            "xgb",
+            "catboost",
+        ]
+
+        # --- NOTE ---
+        # LGBoost, XGBoost, and CatBoost cold handle string columns but the setup would have to be customized for that.
+
+        if model is not None:
+            model_only_numerical = any(
+                numerical_model_name.lower() in model.__class__.__name__.lower()
+                for numerical_model_name in purely_numerical_model_names
+            )
+
+            if model_only_numerical and allow_strings is True:
+                raise ValueError(
+                    "Model is purely numerical and does not allow string columns, but allow_strings is True."
+                )
+
+            return not model_only_numerical
+
+        elif allow_strings is not None:
+            return allow_strings
+        else:
+            return False
+
     def create_pipeline(
-        self, model: Optional[BaseEstimator] = None, force_encoding: bool = False
+        self,
+        model: Optional[BaseEstimator] = None,
+        allow_strings: Optional[bool] = None,
     ) -> Pipeline:
         """A function that is to automate the process of processing the data so that it is ready to be trained on made the prediction.
 
         Args:
-            force_numerical (bool, optional): Whether or not all the data should have float types. Meaning if the encoding of the categorical columns is crucial. Defaults to True.
+            allow_strings (bool, optional): Whether or not all the data should have float types. Meaning if the encoding of the categorical columns is crucial. Defaults to False.
             model (Optional[BaseEstimator], optional): A model that is supposed to make predictions. Defaults to None.
 
         Returns:
             Pipeline: A processing pipeline.
         """
 
-        purely_numerical_model_names: List[str] = ["Ridge"]
-
-        allows_strings = True
-        if model is not None and any(
-            numerical_model_name in model.__class__.__name__
-            for numerical_model_name in purely_numerical_model_names
-        ):
-            allows_strings = False
-
-        transformer_list: Sequence[Tuple[str, TransformerMixin | Pipeline]] = []
-
-        numerical_transformer = ColumnTransformer(
+        # --- NOTE ---
+        # Impute mean for numerical columns and one hot encode for string columns.
+        numerical_column_transformer = ColumnTransformer(
             transformers=[
                 (
                     "numerical_pipeline",
-                    make_pipeline(SimpleImputer(strategy="mean"), StandardScaler()),
-                    make_column_selector(dtype_include=np.number),  # type: ignore
+                    make_pipeline(SimpleImputer(
+                        strategy="mean"), StandardScaler()),
+                    make_column_selector(
+                        dtype_include=np.number),  # type: ignore
                 )
             ],
             remainder="drop",
         )
 
-        transformer_list.append(("numerical_transformer", numerical_transformer))
+        # --- NOTE ---
+        # If the model is purely numerical, then we should not allow string columns.
+        # Or if the user wants to force encoding, then we should encode the string columns.
 
-        if allows_strings is False or force_encoding is True:
-            string_transformer = ColumnTransformer(
-                transformers=[
-                    (
-                        "encoder",
-                        OneHotEncoder(
-                            drop="first",
-                            handle_unknown="infrequent_if_exist",
-                            sparse_output=self.pandas_output is False,
-                        ),
-                        make_column_selector(dtype_include=object),  # type: ignore
-                    )
-                ],
-                remainder="drop",
+        string_pipeline_steps: List[BaseEstimator] = [
+            SimpleImputer(strategy="constant", fill_value="dna"),
+        ]
+        if not self._is_string_allowed(model=model, allow_strings=allow_strings):
+            string_pipeline_steps.append(
+                OneHotEncoder(
+                    drop="first",
+                    handle_unknown="infrequent_if_exist",
+                    sparse_output=self.pandas_output is False,
+                )
             )
 
-            transformer_list.append(("string_transformer", string_transformer))
+        string_column_transformer = ColumnTransformer(
+            transformers=[
+                (
+                    "string_pipeline",
+                    make_pipeline(*string_pipeline_steps),
+                    make_column_selector(dtype_include=object),  # type: ignore
+                )
+            ],
+            remainder="drop",
+        )
 
+        # --- NOTE ---
+        # Create steps for the pipeline.
+        # If model is not None, then add the model to the pipeline.
         steps: List[Tuple[str, BaseEstimator]] = [
-            ("feature_union", FeatureUnion(transformer_list=transformer_list))
+            (
+                "feature_union",
+                FeatureUnion(
+                    transformer_list=[
+                        ("numerical", numerical_column_transformer),
+                        ("string", string_column_transformer),
+                    ]
+                ),
+            )
         ]
-
         if model is not None:
             steps.append(("model", model))
 
+        # --- NOTE ---
+        # Create the pipeline with the steps and set the output to be pandas DataFrame if needed.
         pipeline = cast(
             Pipeline,
             Pipeline(steps=steps, memory=self.memory).set_output(

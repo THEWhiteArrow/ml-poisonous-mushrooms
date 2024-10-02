@@ -1,6 +1,7 @@
+import json
 from pathlib import Path
 import signal
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 import multiprocessing as mp
 
 import optuna
@@ -36,9 +37,11 @@ def run_parallel_optimization(
     ],
     omit_names: List[str] = [],
     processes: Optional[int] = None,
+    metadata: Optional[Dict] = None,
 ) -> None:
     if processes is None:
-        processes = mp.cpu_count() * 3 // 4
+        processes = -1
+        # processes = mp.cpu_count() * 3 // 4
 
     logger.info(f"Running optimization with {processes} processes")
 
@@ -47,26 +50,37 @@ def run_parallel_optimization(
     # 2. If the model can't use multiple cores, then set mutliple models to run at the same time.
     # 3. If the model can use multiple cores, then set only one model to run at the same time.
 
-    parallel_model_prefixes = ["Ridge", "KNeighbors"]
-    sequential_model_prefixes = ["RandomForest", "XGB", "LGBM"]
+    parallel_model_prefixes = ["ridge"]
 
-    sequenctial_model_combinations = [
+    sequential_model_combinations = [
         model_combination
         for model_combination in all_model_combinations
-        if any(  # type: ignore
-            model_combination.name.startswith(prefix)
-            for prefix in sequential_model_prefixes
+        if all(  # type: ignore
+            not model_combination.name.lower().startswith(prefix.lower())
+            for prefix in parallel_model_prefixes
         )
+        and model_combination.name not in omit_names
     ]
 
     parallel_model_combinations = [
         model_combination
         for model_combination in all_model_combinations
         if any(  # type: ignore
-            model_combination.name.startswith(prefix)
+            model_combination.name.lower().startswith(prefix.lower())
             for prefix in parallel_model_prefixes
         )
+        and model_combination.name not in omit_names
     ]
+    logger.info(
+        "Will be running parallel optimization for models: " +
+        json.dumps(
+            [model.name for model in parallel_model_combinations], indent=4)
+    )
+    logger.info(
+        "Will be running sequential optimization for models: " +
+        json.dumps(
+            [model.name for model in sequential_model_combinations], indent=4)
+    )
     # Set up multiprocessing pool
     with mp.Pool(processes=processes, initializer=init_worker) as pool:
         # Map each iteration of the loop to a process
@@ -88,33 +102,31 @@ def run_parallel_optimization(
                     hyper_opt_prefix,
                     study_prefix,
                     create_objective,
+                    metadata,
                 )
                 for i, model_combination in enumerate(parallel_model_combinations)
                 if model_combination.name not in omit_names
             ],
         )
 
-    with mp.Pool(processes=1, initializer=init_worker) as pool:
-        _ = pool.starmap(
-            optimize_model_and_save,
-            [
-                (
-                    model_run,
-                    direction,
-                    model_combination,
-                    X,
-                    y,
-                    n_optimization_trials,
-                    n_cv,
-                    n_patience,
-                    min_percentage_improvement,
-                    i,
-                    output_dir_path,
-                    hyper_opt_prefix,
-                    study_prefix,
-                    create_objective,
-                )
-                for i, model_combination in enumerate(sequenctial_model_combinations)
-                if model_combination.name not in omit_names
-            ],
+    for i, model_combination in enumerate(sequential_model_combinations):
+        if model_combination.name in omit_names:
+            continue
+
+        optimize_model_and_save(
+            model_run,
+            direction,
+            model_combination,
+            X,
+            y,
+            n_optimization_trials,
+            n_cv,
+            n_patience,
+            min_percentage_improvement,
+            i,
+            output_dir_path,
+            hyper_opt_prefix,
+            study_prefix,
+            create_objective,
+            metadata,
         )

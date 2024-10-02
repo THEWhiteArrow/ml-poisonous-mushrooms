@@ -20,8 +20,8 @@ class HyperOptManager:
 
         hyper_opt_model_combinations: List[HyperOptCombination] = [
             HyperOptCombination(
-                name=f"{model.__class__.__name__}_{
-                    combination.name}",
+                name=f"{model.__class__.__name__}"
+                + f"_{combination.name}",
                 model=model,
                 feature_combination=combination,
             )

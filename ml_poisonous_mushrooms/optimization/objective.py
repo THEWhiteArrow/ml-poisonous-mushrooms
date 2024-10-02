@@ -1,4 +1,6 @@
 from typing import Callable
+import gc
+
 import optuna
 import pandas as pd
 from sklearn.model_selection import cross_val_score
@@ -15,7 +17,8 @@ def create_objective(
     n_cv: int,
 ) -> Callable[[optuna.Trial], float]:
 
-    processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
+    processing_pipeline_wrapper = ProcessingPipelineWrapper(
+        pandas_output=False)
     model = model_combination.model
 
     def objective(
@@ -32,10 +35,12 @@ def create_objective(
         pipeline = processing_pipeline_wrapper.create_pipeline(model=model)
 
         scores = cross_val_score(
-            estimator=pipeline, X=X, y=y, cv=n_cv, scoring="accuracy"
+            estimator=pipeline, X=X, y=y, cv=n_cv, scoring="accuracy", error_score="raise"
         )
 
         avg_acc = scores.mean()
+
+        gc.collect()
         return avg_acc
 
     return objective

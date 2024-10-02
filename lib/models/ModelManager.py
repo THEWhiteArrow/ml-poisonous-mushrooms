@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import RandomForestClassifier
@@ -8,26 +8,38 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from lightgbm import LGBMClassifier
 from xgboost import XGBClassifier
+from catboost import CatBoostClassifier
 
 
 @dataclass
 class ModelManager:
     task: Literal["classification"]
 
-    def get_models(self, use_sv: bool = False) -> List[BaseEstimator]:
+    def get_models(self, use_additional: List[str], processes: Optional[int] = None) -> List[BaseEstimator]:
         # --- TODO ---
-        # Add more taks types and models
+        # Investigate the speed of the KNeighborsClassifier, it seems that it is incredibly slow or something is
+        # wrong with the implementation.
+
+        job_count = processes if processes is not None else -1
+
         if self.task == "classification":
             models = [
-                RidgeClassifier(),
-                RandomForestClassifier(),
-                KNeighborsClassifier(),
-                LGBMClassifier(),  # type: ignore
-                XGBClassifier(),  # type: ignore
+                CatBoostClassifier(verbose=False, thread_count=job_count),
+                # XGBClassifier(n_jobs=job_count),
+                # LGBMClassifier(n_jobs=job_count, verbosity=-1),
+                # RidgeClassifier(),
             ]
 
-            if use_sv:
-                models.append(SVC())
+            additional_models = [
+                SVC(),
+                RandomForestClassifier(random_state=1000000007, n_jobs=job_count),
+                KNeighborsClassifier(n_jobs=job_count),
+            ]
+
+            for model_name in use_additional:
+                for model in additional_models:
+                    if model_name.lower() == model.__class__.__name__.lower():
+                        models.append(model)
 
             return models
 

@@ -23,7 +23,7 @@ def setup_logger(name: str | None = None) -> logging.Logger:
     file_handler = logging.FileHandler("logs.log", mode="a")
     file_handler.setLevel(logging.DEBUG)  # Adjust the log level as needed
     file_formatter = logging.Formatter(
-        '%(levelname)s %(name)s %(asctime)s | %(message)s')
+        '%(levelname)s %(name)s %(asctime)s | %(message)s', datefmt='%H:%M:%S')
     file_handler.setFormatter(file_formatter)
 
     # Create stream handler (for console output)

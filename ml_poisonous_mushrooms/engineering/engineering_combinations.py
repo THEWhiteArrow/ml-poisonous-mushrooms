@@ -1,10 +1,12 @@
+from typing import List, Optional
 from lib.features.FeatureManager import FeatureManager
 from lib.features.FeatureSet import FeatureSet
+from lib.models.HyperOptCombination import HyperOptCombination
 from lib.models.HyperOptManager import HyperOptManager
 from lib.models.ModelManager import ModelManager
 
 
-def create_combinations():
+def create_combinations(processes: Optional[int] = None) -> List[HyperOptCombination]:
     feature_manager = FeatureManager(
         feature_sets=[
             FeatureSet(
@@ -20,7 +22,7 @@ def create_combinations():
             ),
             FeatureSet(
                 name="cap",
-                is_optional=True,
+                is_optional=False,
                 features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
             ),
             FeatureSet(
@@ -35,7 +37,7 @@ def create_combinations():
             ),
             FeatureSet(
                 name="other",
-                is_optional=True,
+                is_optional=False,
                 features=[
                     "spore-print-color",
                     "habitat",
@@ -50,7 +52,7 @@ def create_combinations():
 
     hyper_manager = HyperOptManager(
         feature_manager=feature_manager,
-        models=model_manager.get_models(),
+        models=model_manager.get_models(use_additional=[], processes=processes),
     )
 
     return hyper_manager.get_model_combinations()
