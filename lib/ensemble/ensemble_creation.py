@@ -15,7 +15,7 @@ def create_ensemble_model_and_save(
     selected_model_names: List[str],
     hyper_models_dir_path: Path,
     ensemble_model_dir_path: Path,
-) -> None:
+) -> EnsembleModel:
 
     logger.info("Loading models from the config")
 
@@ -49,3 +49,5 @@ def create_ensemble_model_and_save(
         open(ensemble_model_dir_path / f"ensemble_model_{model_run}.ensemble", "wb"),
     )
     logger.info("Ensemble model has been saved")
+
+    return ensemble_model

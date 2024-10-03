@@ -1,9 +1,4 @@
 {
-	"workbench.editorAssociations": {
-		"*.zip": "default",
-		"file:/**/*.csv": "jupyter-data-wrangler"
-	},
-	"python.analysis.typeCheckingMode": "standard",
-	"makefile.configureOnOpen": false,
-	"python.analysis.autoImportCompletions": true
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "standard"
 }

@@ -3,12 +3,14 @@
 
 # Byte-compiled / optimized / DLL files
 **/__pycache__
+**/.pytest_cache
+catboost_info
 .venv
 
 # Logs
 *.log
 
 # Hyper opt models and studies
-*.pkl
-*.db
+results/hyper_*/*.pkl
+results/study_*/*.db
 
