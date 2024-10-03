@@ -15,7 +15,9 @@ from catboost import CatBoostClassifier
 class ModelManager:
     task: Literal["classification"]
 
-    def get_models(self, use_additional: List[str], processes: Optional[int] = None) -> List[BaseEstimator]:
+    def get_models(
+        self, use_additional: List[str], processes: Optional[int] = None
+    ) -> List[BaseEstimator]:
         # --- TODO ---
         # Investigate the speed of the KNeighborsClassifier, it seems that it is incredibly slow or something is
         # wrong with the implementation.
@@ -24,10 +26,10 @@ class ModelManager:
 
         if self.task == "classification":
             models = [
+                XGBClassifier(n_jobs=job_count),
+                LGBMClassifier(n_jobs=job_count, verbosity=-1),
+                RidgeClassifier(),
                 CatBoostClassifier(verbose=False, thread_count=job_count),
-                # XGBClassifier(n_jobs=job_count),
-                # LGBMClassifier(n_jobs=job_count, verbosity=-1),
-                # RidgeClassifier(),
             ]
 
             additional_models = [
