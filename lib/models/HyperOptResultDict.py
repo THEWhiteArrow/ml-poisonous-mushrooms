@@ -9,4 +9,5 @@ class HyperOptResultDict(TypedDict):
     features: List[str]
     params: Dict[str, Any]
     score: float
+    n_trials: int
     metadata: Optional[Dict]

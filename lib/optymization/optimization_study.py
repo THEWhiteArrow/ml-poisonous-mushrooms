@@ -117,11 +117,11 @@ def optimize_model_and_save(
         params=best_params,
         model=best_model,
         features=model_combination.feature_combination.features,
+        n_trials=len(study.trials),
         metadata=metadata,
     )
 
-    os.makedirs(output_dir_path /
-                f"{hyper_opt_prefix}{model_run}", exist_ok=True)
+    os.makedirs(output_dir_path / f"{hyper_opt_prefix}{model_run}", exist_ok=True)
 
     try:
         results_path = Path(

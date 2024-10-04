@@ -55,5 +55,5 @@ def analyse_hyper(
 
 if __name__ == "__main__":
     logger.info("Starting hyper analysis...")
-    analyse_hyper(model_run="202409260000", display_plots=True)
+    analyse_hyper(model_run="202410030700", display_plots=True)
     logger.info("Analysis complete.")
