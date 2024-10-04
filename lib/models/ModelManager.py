@@ -40,7 +40,7 @@ class ModelManager:
 
             for model_name in use_additional:
                 for model in additional_models:
-                    if model_name.lower() == model.__class__.__name__.lower():
+                    if model_name.lower() in model.__class__.__name__.lower():
                         models.append(model)
 
             return models
