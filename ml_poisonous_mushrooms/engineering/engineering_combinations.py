@@ -31,7 +31,7 @@ def create_combinations(processes: Optional[int] = None) -> List[HyperOptCombina
                 features=["gill-spacing", "gill-attachment", "gill-color"],
             ),
             FeatureSet(
-                name="ring_and_veil",
+                name="ringandveil",
                 is_optional=False,
                 features=["has-ring", "ring-type", "veil-type", "veil-color"],
             ),
