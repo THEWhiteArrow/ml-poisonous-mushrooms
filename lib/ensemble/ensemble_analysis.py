@@ -1,12 +1,11 @@
 from pathlib import Path
-from typing import Callable, Dict, Tuple, TypedDict
+from typing import Callable, Dict, List, Tuple, TypedDict
 
 import pandas as pd
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
 
 from lib.models.EnsembleModel import EnsembleModel
 from lib.logger import setup_logger
-from lib.pipelines.ProcessingPipelineWrapper import ProcessingPipelineWrapper
 
 logger = setup_logger(__name__)
 
@@ -16,85 +15,149 @@ class EnsembleFunctionDto(TypedDict):
     engineer_features_func: Callable[[pd.DataFrame], pd.DataFrame]
 
 
-def analyse_ensemble(model_run: str, ensemble_model: EnsembleModel, n_cv: int, ensemble_model_dir_path: Path, limit_data_percentage: float, function_dto: EnsembleFunctionDto) -> None:
+def analyse_ensemble(
+    model_run: str,
+    ensemble_model: EnsembleModel,
+    n_cv: int,
+    ensemble_model_dir_path: Path,
+    limit_data_percentage: float,
+    id_column: List[str] | str,
+    function_dto: EnsembleFunctionDto,
+) -> None:
+
     if limit_data_percentage < 0.0 or limit_data_percentage > 1.0:
         raise ValueError(
             f"Invalid limit data percentage value: {limit_data_percentage}"
         )
 
-    results1 = results2 = {}
+    logger.info("Loading data")
 
-    logger.info("Testing all models from ensemble")
-    results1 = verify_models_from_ensemble(ensemble_model, n_cv, limit_data_percentage, function_dto)
+    train, test = function_dto["load_data_func"]()
 
-    logger.info("Testing ensemble model")
-    results2 = verify_ensemble_model(ensemble_model, n_cv, limit_data_percentage, function_dto)
+    train = train.head(int(len(train) * limit_data_percentage))
 
-    final_results = {
-        **results1,
-        **results2,
+    engineered_data = function_dto["engineer_features_func"](train).set_index(id_column)
+
+    results: Dict[str, List[float]] = {
+        model_name: [] for model_name in ensemble_model.combination_names
     }
+    results["ensemble"] = []
+
+    kfold = KFold(n_splits=n_cv)
+    for i, (train_index, test_index) in enumerate(kfold.split(engineered_data)):
+        X_train, X_test = (
+            engineered_data.iloc[train_index],
+            engineered_data.iloc[test_index],
+        )
+        y_train, y_test = X_train["class"], X_test["class"]
+
+        logger.info(f"Testing model with fold {i + 1}")
+        y_pred = ensemble_model.fit(X_train, y_train).predict(X_test)
+
+        results["ensemble"].append((y_pred == y_test).sum() / len(y_test))
+        for j, model in enumerate(ensemble_model.models):
+            if ensemble_model.predictions is None:
+                raise ValueError(
+                    f"Model {ensemble_model.combination_names[j]} has not been fitted yet"
+                )
+
+            results[ensemble_model.combination_names[j]].append(
+                (ensemble_model.predictions[j] == y_test).sum() / len(y_test)
+            )
 
     logger.info("Saving results to csv file")
-    df = pd.DataFrame(final_results.items(), columns=["Model", "Accuracy"])
-    ensemble_analysis_results_path = ensemble_model_dir_path / \
-        f"ensemble_analysis_{limit_data_percentage}_{model_run}.csv"
+    logger.info(f"Results saved to csv file: {results}")
+
+    df = pd.DataFrame(results)
+
+    ensemble_analysis_results_path = (
+        ensemble_model_dir_path
+        / f"ensemble_analysis_{limit_data_percentage}_{model_run}.csv"
+    )
     df.to_csv(ensemble_analysis_results_path, index=False)
 
     logger.info(f"Results saved to csv file: {ensemble_analysis_results_path}")
 
 
-def verify_models_from_ensemble(
-    ensemble_model: EnsembleModel, n_cv: int, limit_data_percentage: float, function_dto: EnsembleFunctionDto
-) -> Dict[str, float]:
-    logger.info("Testing models from ensemble")
+# def analyse_ensemble(model_run: str, ensemble_model: EnsembleModel, n_cv: int, ensemble_model_dir_path: Path, limit_data_percentage: float, function_dto: EnsembleFunctionDto) -> None:
+#     if limit_data_percentage < 0.0 or limit_data_percentage > 1.0:
+#         raise ValueError(
+#             f"Invalid limit data percentage value: {limit_data_percentage}"
+#         )
 
-    train, test = function_dto["load_data_func"]()
+#     results1 = results2 = {}
 
-    train = train.head(int(len(train) * limit_data_percentage))
+#     logger.info("Testing all models from ensemble")
+#     results1 = verify_models_from_ensemble(ensemble_model, n_cv, limit_data_percentage, function_dto)
 
-    engineered_data = function_dto["engineer_features_func"](train).set_index("id")
-    results = {}
-    for i, model in enumerate(ensemble_model.models):
-        logger.info(f"Testing model {ensemble_model.combination_names[i]}")
-        X = engineered_data[ensemble_model.combination_feature_lists[i]]
-        y = engineered_data["class"]
-        pipeline = ProcessingPipelineWrapper().create_pipeline(model)
+#     logger.info("Testing ensemble model")
+#     results2 = verify_ensemble_model(ensemble_model, n_cv, limit_data_percentage, function_dto)
 
-        scores = cross_val_score(
-            estimator=pipeline, X=X, y=y, cv=n_cv, scoring="accuracy"
-        )
+#     final_results = {
+#         **results1,
+#         **results2,
+#     }
 
-        avg_acc = scores.mean()
+#     logger.info("Saving results to csv file")
+#     df = pd.DataFrame(final_results.items(), columns=["Model", "Accuracy"])
+#     ensemble_analysis_results_path = ensemble_model_dir_path / \
+#         f"ensemble_analysis_{limit_data_percentage}_{model_run}.csv"
+#     df.to_csv(ensemble_analysis_results_path, index=False)
 
-        logger.info(
-            f"Model {ensemble_model.combination_names[i]} has scored: {
-                avg_acc}"
-        )
-
-        results[ensemble_model.combination_names[i]] = avg_acc
-
-    return results
+#     logger.info(f"Results saved to csv file: {ensemble_analysis_results_path}")
 
 
-def verify_ensemble_model(
-    ensemble_model: EnsembleModel, n_cv: int, limit_data_percentage: float, function_dto: EnsembleFunctionDto
-) -> Dict[str, float]:
-    logger.info("Testing ensemble model")
+# def verify_models_from_ensemble(
+#     ensemble_model: EnsembleModel, n_cv: int, limit_data_percentage: float, function_dto: EnsembleFunctionDto
+# ) -> Dict[str, float]:
+#     logger.info("Testing models from ensemble")
 
-    train, test = function_dto["load_data_func"]()
+#     train, test = function_dto["load_data_func"]()
 
-    train = train.head(int(len(train) * limit_data_percentage))
+#     train = train.head(int(len(train) * limit_data_percentage))
 
-    engineered_data = function_dto["engineer_features_func"](train).set_index("id")
+#     engineered_data = function_dto["engineer_features_func"](train).set_index("id")
+#     results = {}
+#     for i, model in enumerate(ensemble_model.models):
+#         logger.info(f"Testing model {ensemble_model.combination_names[i]}")
+#         X = engineered_data[ensemble_model.combination_feature_lists[i]]
+#         y = engineered_data["class"]
+#         pipeline = ProcessingPipelineWrapper().create_pipeline(model)
 
-    X = engineered_data
-    y = engineered_data["class"]
-    scores = cross_val_score(
-        estimator=ensemble_model, X=X, y=y, cv=n_cv, scoring="accuracy"
-    )
+#         scores = cross_val_score(
+#             estimator=pipeline, X=X, y=y, cv=n_cv, scoring="accuracy"
+#         )
 
-    avg_acc = scores.mean()
-    logger.info(f"Ensemble model has scored: {avg_acc}")
+#         avg_acc = scores.mean()
 
-    return {"ensemble": avg_acc}
+#         logger.info(
+#             f"Model {ensemble_model.combination_names[i]} has scored: {
+#                 avg_acc}"
+#         )
+
+#         results[ensemble_model.combination_names[i]] = avg_acc
+
+#     return results
+
+
+# def verify_ensemble_model(
+#     ensemble_model: EnsembleModel, n_cv: int, limit_data_percentage: float, function_dto: EnsembleFunctionDto
+# ) -> Dict[str, float]:
+#     logger.info("Testing ensemble model")
+
+#     train, test = function_dto["load_data_func"]()
+
+#     train = train.head(int(len(train) * limit_data_percentage))
+
+#     engineered_data = function_dto["engineer_features_func"](train).set_index("id")
+
+#     X = engineered_data
+#     y = engineered_data["class"]
+#     scores = cross_val_score(
+#         estimator=ensemble_model, X=X, y=y, cv=n_cv, scoring="accuracy"
+#     )
+
+#     avg_acc = scores.mean()
+#     logger.info(f"Ensemble model has scored: {avg_acc}")
+
+#     return {"ensemble": avg_acc}

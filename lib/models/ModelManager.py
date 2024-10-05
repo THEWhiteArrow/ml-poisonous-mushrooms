@@ -35,7 +35,7 @@ class ModelManager:
             additional_models = [
                 SVC(random_state=1000000007),
                 RandomForestClassifier(random_state=1000000007, n_jobs=job_count),
-                KNeighborsClassifier(n_jobs=job_count),
+                KNeighborsClassifier(n_jobs=job_count, metric="cosine"),
             ]
 
             for model_name in use_additional:
