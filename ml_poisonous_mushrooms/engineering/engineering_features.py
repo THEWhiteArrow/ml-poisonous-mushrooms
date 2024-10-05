@@ -20,7 +20,7 @@ def clean_categorical(X: pd.DataFrame) -> pd.DataFrame:
     data = X.copy()
     categorical_outliers_frequency_limit = 0.05
     logger.info(
-        "Outliers frequency limit is" + f"{categorical_outliers_frequency_limit}"
+        "Outliers frequency limit is " + f"{categorical_outliers_frequency_limit}"
     )
 
     categorical_columns: List[str] = X.select_dtypes(
