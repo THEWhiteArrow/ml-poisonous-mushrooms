@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     ensemble_model_dir_path = (
         PathManager.OUTPUT_DIR_PATH.value
-        / f"{PrefixManager.ENSEMBLE_PREFIX.value}{config['model_run']}"
+        / f"{PrefixManager.ENSEMBLE_PREFIX.value}"
     )
 
     custom_suffix = ""
