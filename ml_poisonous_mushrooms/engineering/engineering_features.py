@@ -18,9 +18,10 @@ def clean_categorical(X: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: A cleaned dataframe.
     """
     data = X.copy()
-    categorical_outliers_frequency_limit = 0.01
-    logger.info("Outliers frequency limit is" +
-                f"{categorical_outliers_frequency_limit}")
+    categorical_outliers_frequency_limit = 0.05
+    logger.info(
+        "Outliers frequency limit is" + f"{categorical_outliers_frequency_limit}"
+    )
 
     categorical_columns: List[str] = X.select_dtypes(
         exclude=["number"]
@@ -41,8 +42,7 @@ def clean_categorical(X: pd.DataFrame) -> pd.DataFrame:
 
         data.loc[:, column] = (
             pd.Series(
-                data[column].apply(
-                    lambda el: el if el not in outliers else "dna")
+                data[column].apply(lambda el: el if el not in outliers else "dna")
             )
             .rename(column)
             .fillna("dna")

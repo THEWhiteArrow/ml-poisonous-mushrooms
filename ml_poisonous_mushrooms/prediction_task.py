@@ -22,7 +22,7 @@ if __name__ == '__main__':
         / f"{PrefixManager.ENSEMBLE_PREFIX.value}{config['model_run']}"
     )
 
-    custom_suffix = "_01_5"
+    custom_suffix = ""
     ensemble_model_path = ensemble_model_dir_path / \
         f"ensemble_model_{config["model_run"]}{custom_suffix}.ensemble"
 
