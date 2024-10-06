@@ -10,7 +10,7 @@ def create_combinations(processes: Optional[int] = None) -> List[HyperOptCombina
     feature_manager = FeatureManager(
         feature_sets=[
             FeatureSet(
-                name="2stem",
+                name="stem2",
                 is_optional=False,
                 features=[
                     "stem-height",
@@ -26,7 +26,7 @@ def create_combinations(processes: Optional[int] = None) -> List[HyperOptCombina
                 features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
             ),
             FeatureSet(
-                name="gill",
+                name="gill2",
                 is_optional=False,
                 features=[
                     # "gill-spacing",
@@ -35,7 +35,7 @@ def create_combinations(processes: Optional[int] = None) -> List[HyperOptCombina
                 ],
             ),
             FeatureSet(
-                name="ringandveil",
+                name="ringandveil2",
                 is_optional=False,
                 features=[
                     "has-ring",
@@ -45,7 +45,7 @@ def create_combinations(processes: Optional[int] = None) -> List[HyperOptCombina
                 ],
             ),
             FeatureSet(
-                name="other",
+                name="other2",
                 is_optional=False,
                 features=[
                     # "spore-print-color",
