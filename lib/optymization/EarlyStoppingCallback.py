@@ -34,8 +34,8 @@ class EarlyStoppingCallback:
         if self.no_improvement_count >= self.patience:
             logger.info(
                 f"Early stopping the study: {self.name} due to "
-                + f"no {self.min_percentage_improvement * 100}" +
-                "% improvement for "
+                + f"no {self.min_percentage_improvement * 100}"
+                + "% improvement for "
                 + f"{self.patience} trials | on trial: {trial.number}"
             )
             study.stop()
