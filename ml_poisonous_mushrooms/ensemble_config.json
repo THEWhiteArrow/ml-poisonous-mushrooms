@@ -3,7 +3,8 @@
 		"LGBMClassifier_stem_cap_gill_ringandveil_other_",
 		"XGBClassifier_stem_cap_gill_ringandveil_other_",
 		"RandomForestClassifier_stem_cap_gill_ringandveil_other_",
-		"CatBoostClassifier_stem_cap_gill_ringandveil_other_"
+		"CatBoostClassifier_stem_cap_gill_ringandveil_other_",
+		"RidgeClassifier_stem_cap_gill_ringandveil_other_"
 	],
 	"model_run": "202410030700"
 }

@@ -34,17 +34,13 @@ if __name__ == '__main__':
     # Load the test data
     train, test = load_data()
 
-    train["train"] = 1
-    test["train"] = 0
+    engineered_data_train = engineer_features(train).set_index("id")
+    engineered_data_test = engineer_features(test).set_index("id")
 
-    data = pd.concat([train, test], axis=0)
+    X_train = engineered_data_train
+    y_train = engineered_data_train["class"]
 
-    engineered_data = engineer_features(data).set_index("id")
-
-    X_train = engineered_data.loc[engineered_data["train"] == 1]
-    y_train = engineered_data.loc[engineered_data["train"] == 1, "class"]
-
-    X_test = engineered_data.loc[engineered_data["train"] == 0]
+    X_test = engineered_data_test
 
     ensemble_model.fit(X_train, y_train)
 
