@@ -62,7 +62,10 @@ def label_targets(X: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: A labeled dataframe.
     """
     data = X.copy()
-    data["class"] = data["class"].map({"p": 1, "e": 0})
+    if "class" in data.columns:
+        data["class"] = data["class"].map({"p": 1, "e": 0})
+    else:
+        logger.warning("No target column found in the dataset.")
 
     return data
 
