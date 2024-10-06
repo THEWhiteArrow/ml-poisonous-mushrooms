@@ -26,8 +26,8 @@ if __name__ == "__main__":
     setup_dto = HyperSetupDto(
         n_optimization_trials=125,
         n_cv=5,
-        n_patience=40,
-        min_percentage_improvement=0.005,
+        n_patience=20,
+        min_percentage_improvement=0.001,
         model_run="202410030700",
         limit_data_percentage=0.15,
         processes=mp.cpu_count(),
