@@ -28,7 +28,7 @@ if __name__ == "__main__":
         n_cv=5,
         n_patience=20,
         min_percentage_improvement=0.001,
-        model_run="202410030700",
+        model_run="202410060000",
         limit_data_percentage=0.15,
         processes=mp.cpu_count(),
         target_name="class",

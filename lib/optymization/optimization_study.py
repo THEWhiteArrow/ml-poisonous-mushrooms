@@ -44,6 +44,45 @@ def get_existing_trials_info(
     return no_improvement_count, best_value
 
 
+def save_hyper_result(
+    trail: optuna.trial.FrozenTrial,
+    model_combination: HyperOptCombination,
+    output_dir_path: Path,
+    hyper_opt_prefix: str,
+    model_run: str,
+    study: optuna.study.Study,
+    metadata: Optional[Dict] = None,
+    suffix: str = "",
+) -> None:
+    best_params = trail.params
+    best_score = trail.value
+    best_model = model_combination.model.set_params(**best_params)
+
+    result = HyperOptResultDict(
+        name=model_combination.name,
+        score=best_score,  # type: ignore
+        params=best_params,
+        model=best_model,
+        features=model_combination.feature_combination.features,
+        n_trials=len(study.trials),
+        metadata=metadata,
+    )
+
+    os.makedirs(output_dir_path / f"{hyper_opt_prefix}{model_run}", exist_ok=True)
+
+    try:
+        results_path = Path(
+            f"{output_dir_path}/{hyper_opt_prefix}{model_run}/{model_combination.name}_{suffix}.pkl"
+        )
+
+        pickle.dump(result, open(results_path, "wb"))
+    except Exception as e:
+        logger.error(
+            f"Error saving model combination {model_combination.name}{suffix}: {e}"
+        )
+        raise e
+
+
 def optimize_model_and_save(
     model_run: str,
     direction: str,
@@ -99,39 +138,30 @@ def optimize_model_and_save(
         callbacks=[early_stopping],  # type: ignore
     )
 
-    # Save the best parameters and score
-    best_params = study.best_params
-    best_score = study.best_value
-    # --- NOTE ---
-    # The model is saved with the best parameters but it does not possess the correct weights
-    best_model = model_combination.model.set_params(**best_params)
+    trials = study.get_trials()
+    completed_trails = [
+        trial
+        for trial in trials
+        if trial.state == optuna.trial.TrialState.COMPLETE and trial.value is not None
+    ]
 
-    logger.info(
-        f"Model combination: {combination_name} "
-        + f"has scored: {best_score} with params: {best_params}"
+    sorted_trials = sorted(
+        completed_trails, key=lambda trial: trial.value, reverse=direction == "maximize"  # type: ignore
     )
 
-    result = HyperOptResultDict(
-        name=model_combination.name,
-        score=best_score,
-        params=best_params,
-        model=best_model,
-        features=model_combination.feature_combination.features,
-        n_trials=len(study.trials),
-        metadata=metadata,
-    )
+    top_trials = sorted_trials[:3]
 
-    os.makedirs(output_dir_path / f"{hyper_opt_prefix}{model_run}", exist_ok=True)
-
-    try:
-        results_path = Path(
-            f"{output_dir_path}/{hyper_opt_prefix}{model_run}/{model_combination.name}.pkl"
+    for i, trial in enumerate(top_trials):
+        save_hyper_result(
+            trail=trial,
+            model_combination=model_combination,
+            output_dir_path=output_dir_path,
+            hyper_opt_prefix=hyper_opt_prefix,
+            model_run=model_run,
+            study=study,
+            metadata=metadata,
+            suffix=f"top_{i}",
         )
-
-        pickle.dump(result, open(results_path, "wb"))
-    except Exception as e:
-        logger.error(f"Error saving model combination {combination_name}: {e}")
-        raise e
 
     del X
     del y
