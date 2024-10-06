@@ -10,45 +10,50 @@ def create_combinations(processes: Optional[int] = None) -> List[HyperOptCombina
     feature_manager = FeatureManager(
         feature_sets=[
             FeatureSet(
-                name="stem2",
+                name="stem",
                 is_optional=False,
                 features=[
                     "stem-height",
                     "stem-width",
-                    # "stem-root",
-                    # "stem-surface",
+                    "stem-root",
+                    "stem-surface",
                     "stem-color",
                 ],
             ),
             FeatureSet(
                 name="cap",
                 is_optional=False,
-                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
+                features=[
+                    "cap-diameter",
+                    "cap-shape",
+                    "cap-surface",
+                    "cap-color",
+                ],
             ),
             FeatureSet(
-                name="gill2",
+                name="gill",
                 is_optional=False,
                 features=[
-                    # "gill-spacing",
+                    "gill-spacing",
                     "gill-attachment",
                     "gill-color",
                 ],
             ),
             FeatureSet(
-                name="ringandveil2",
+                name="ringandveil",
                 is_optional=False,
                 features=[
                     "has-ring",
                     "ring-type",
-                    # "veil-type",
-                    # "veil-color",
+                    "veil-type",
+                    "veil-color",
                 ],
             ),
             FeatureSet(
-                name="other2",
+                name="other",
                 is_optional=False,
                 features=[
-                    # "spore-print-color",
+                    "spore-print-color",
                     "habitat",
                     "season",
                     "does-bruise-or-bleed",
