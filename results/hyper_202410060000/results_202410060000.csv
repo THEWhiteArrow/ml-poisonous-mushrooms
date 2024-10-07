@@ -1,0 +1,61 @@
+name,score,params,model,features,n_trials,metadata
+RidgeClassifier_stem_cap_gill_ringandveil_other__top_2,0.8371201641484097,"{'alpha': 0.1357110335988428, 'tol': 0.00021813818607739773}","RidgeClassifier(alpha=0.1357110335988428, tol=0.00021813818607739773)","['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",25,{'limit_data_percentage': 0.15}
+CatBoostClassifier_stem_cap_gill_ringandveil_other__top_1,0.9917162345667977,"{'iterations': 808, 'depth': 12, 'learning_rate': 0.06363889830702638, 'l2_leaf_reg': 0.011706478445010274, 'bagging_temperature': 0.5820486868049535, 'border_count': 60, 'scale_pos_weight': 1.5508258723246153, 'random_strength': 6.103097995895538, 'one_hot_max_size': 9, 'rsm': 0.6897741223580224, 'od_type': 'IncToDec', 'od_wait': 25}",<catboost.core.CatBoostClassifier object at 0x7faf8c67bf50>,"['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",44,{'limit_data_percentage': 0.15}
+RidgeClassifier_stem_cap_gill_ringandveil_other__top_1,0.8371308583290645,"{'alpha': 0.33723206318264304, 'tol': 0.0003819853782422983}","RidgeClassifier(alpha=0.33723206318264304, tol=0.0003819853782422983)","['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",25,{'limit_data_percentage': 0.15}
+LGBMClassifier_stem_cap_gill_ringandveil_other__top_0,0.9916285418554109,"{'n_estimators': 448, 'max_depth': 10, 'learning_rate': 0.24501122677733453, 'num_leaves': 37, 'min_child_weight': 0.9111724202826706, 'subsample': 0.3294603203720281, 'colsample_bytree': 0.23947062453597687, 'reg_alpha': 0.004253682918105836, 'reg_lambda': 8.523118812382883}","LGBMClassifier(colsample_bytree=0.23947062453597687,
+               learning_rate=0.24501122677733453, max_depth=10,
+               min_child_weight=0.9111724202826706, n_estimators=448, n_jobs=12,
+               num_leaves=37, reg_alpha=0.004253682918105836,
+               reg_lambda=8.523118812382883, subsample=0.3294603203720281,
+               verbosity=-1)","['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",29,{'limit_data_percentage': 0.15}
+RidgeClassifier_stem_cap_gill_ringandveil_other__top_0,0.8371501080418039,"{'alpha': 0.32500921200025423, 'tol': 0.0004044926534032781}","RidgeClassifier(alpha=0.32500921200025423, tol=0.0004044926534032781)","['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",25,{'limit_data_percentage': 0.15}
+CatBoostClassifier_stem_cap_gill_ringandveil_other__top_2,0.9917012626772838,"{'iterations': 907, 'depth': 9, 'learning_rate': 0.047170960719923875, 'l2_leaf_reg': 0.004168922906122271, 'bagging_temperature': 0.3806085433339668, 'border_count': 77, 'scale_pos_weight': 0.983300549400056, 'random_strength': 2.919630140886576, 'one_hot_max_size': 8, 'rsm': 0.863129769101239, 'od_type': 'IncToDec', 'od_wait': 22}",<catboost.core.CatBoostClassifier object at 0x7faf79ac0d10>,"['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",44,{'limit_data_percentage': 0.15}
+XGBClassifier_stem_cap_gill_ringandveil_other__top_0,0.9917825387796354,"{'n_estimators': 450, 'max_depth': 10, 'learning_rate': 0.10297818744719466, 'subsample': 0.9893069257775038, 'colsample_bytree': 0.6327139662947208, 'gamma': 0.08346577850038459, 'reg_alpha': 1.6609383724101499, 'reg_lambda': 0.00038161537148594777, 'min_child_weight': 1.0125686034882737}","XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=0.6327139662947208, device=None,
+              early_stopping_rounds=None, enable_categorical=False,
+              eval_metric=None, feature_types=None, gamma=0.08346577850038459,
+              grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=0.10297818744719466,
+              max_bin=None, max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=10, max_leaves=None,
+              min_child_weight=1.0125686034882737, missing=nan,
+              monotone_constraints=None, multi_strategy=None, n_estimators=450,
+              n_jobs=12, num_parallel_tree=None, random_state=None, ...)","['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",25,{'limit_data_percentage': 0.15}
+LGBMClassifier_stem_cap_gill_ringandveil_other__top_1,0.9916264030238546,"{'n_estimators': 442, 'max_depth': 15, 'learning_rate': 0.23986217562273604, 'num_leaves': 33, 'min_child_weight': 0.015130819716594421, 'subsample': 0.13436067960584264, 'colsample_bytree': 0.24892266098621435, 'reg_alpha': 3.4632457350516016e-05, 'reg_lambda': 0.7465006336075786}","LGBMClassifier(colsample_bytree=0.24892266098621435,
+               learning_rate=0.23986217562273604, max_depth=15,
+               min_child_weight=0.015130819716594421, n_estimators=442,
+               n_jobs=12, num_leaves=33, reg_alpha=3.4632457350516016e-05,
+               reg_lambda=0.7465006336075786, subsample=0.13436067960584264,
+               verbosity=-1)","['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",29,{'limit_data_percentage': 0.15}
+CatBoostClassifier_stem_cap_gill_ringandveil_other__top_0,0.9919194254173812,"{'iterations': 823, 'depth': 12, 'learning_rate': 0.05170215467319688, 'l2_leaf_reg': 0.22999541684688588, 'bagging_temperature': 0.8025150727241678, 'border_count': 72, 'scale_pos_weight': 1.2418116528698038, 'random_strength': 6.663701888229377, 'one_hot_max_size': 9, 'rsm': 0.6818988608425457, 'od_type': 'IncToDec', 'od_wait': 29}",<catboost.core.CatBoostClassifier object at 0x7faf79116d80>,"['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",44,{'limit_data_percentage': 0.15}
+XGBClassifier_stem_cap_gill_ringandveil_other__top_1,0.9917611505555651,"{'n_estimators': 500, 'max_depth': 11, 'learning_rate': 0.07903142380554803, 'subsample': 0.9934358989875218, 'colsample_bytree': 0.6920356883800183, 'gamma': 0.07088573894217344, 'reg_alpha': 3.0297847651856795, 'reg_lambda': 0.0005844239386853385, 'min_child_weight': 1.0045265810238824}","XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=0.6920356883800183, device=None,
+              early_stopping_rounds=None, enable_categorical=False,
+              eval_metric=None, feature_types=None, gamma=0.07088573894217344,
+              grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=0.07903142380554803,
+              max_bin=None, max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=11, max_leaves=None,
+              min_child_weight=1.0045265810238824, missing=nan,
+              monotone_constraints=None, multi_strategy=None, n_estimators=500,
+              n_jobs=12, num_parallel_tree=None, random_state=None, ...)","['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",25,{'limit_data_percentage': 0.15}
+LGBMClassifier_stem_cap_gill_ringandveil_other__top_2,0.9915515433475524,"{'n_estimators': 434, 'max_depth': 18, 'learning_rate': 0.22466679873259976, 'num_leaves': 36, 'min_child_weight': 0.07158206292850955, 'subsample': 0.3174668488553998, 'colsample_bytree': 0.2715498755094666, 'reg_alpha': 0.007185854826337743, 'reg_lambda': 0.11128811195945959}","LGBMClassifier(colsample_bytree=0.2715498755094666,
+               learning_rate=0.22466679873259976, max_depth=18,
+               min_child_weight=0.07158206292850955, n_estimators=434,
+               n_jobs=12, num_leaves=36, reg_alpha=0.007185854826337743,
+               reg_lambda=0.11128811195945959, subsample=0.3174668488553998,
+               verbosity=-1)","['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",29,{'limit_data_percentage': 0.15}
+XGBClassifier_stem_cap_gill_ringandveil_other__top_2,0.991733345379361,"{'n_estimators': 450, 'max_depth': 13, 'learning_rate': 0.07967063324711626, 'subsample': 0.9097959786125547, 'colsample_bytree': 0.6925697063746187, 'gamma': 0.0797420808352941, 'reg_alpha': 5.131986260364992, 'reg_lambda': 0.04344126156967495, 'min_child_weight': 3.6152548875694492}","XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=0.6925697063746187, device=None,
+              early_stopping_rounds=None, enable_categorical=False,
+              eval_metric=None, feature_types=None, gamma=0.0797420808352941,
+              grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=0.07967063324711626,
+              max_bin=None, max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=13, max_leaves=None,
+              min_child_weight=3.6152548875694492, missing=nan,
+              monotone_constraints=None, multi_strategy=None, n_estimators=450,
+              n_jobs=12, num_parallel_tree=None, random_state=None, ...)","['stem-height', 'stem-width', 'stem-root', 'stem-surface', 'stem-color', 'cap-diameter', 'cap-shape', 'cap-surface', 'cap-color', 'gill-spacing', 'gill-attachment', 'gill-color', 'has-ring', 'ring-type', 'veil-type', 'veil-color', 'spore-print-color', 'habitat', 'season', 'does-bruise-or-bleed']",25,{'limit_data_percentage': 0.15}

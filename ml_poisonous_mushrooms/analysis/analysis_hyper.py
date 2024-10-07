@@ -44,8 +44,7 @@ def analyse_hyper(
         for study in hyper_opt_studies:
 
             logger.info(
-                f"Study {study.study_name}" +
-                f" has {len(study.trials)} trials."
+                f"Study {study.study_name}" + f" has {len(study.trials)} trials."
             )
 
             # optuna.visualization.plot_optimization_history(study).show()
@@ -55,5 +54,5 @@ def analyse_hyper(
 
 if __name__ == "__main__":
     logger.info("Starting hyper analysis...")
-    analyse_hyper(model_run="202410030700", display_plots=True)
+    analyse_hyper(model_run="202410060000", display_plots=False)
     logger.info("Analysis complete.")
