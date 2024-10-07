@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, accuracy_score
+from sklearn.base import BaseEstimator
 from sklearn.model_selection import KFold
 from sklearn.pipeline import Pipeline
 
@@ -154,7 +154,7 @@ class EnsembleModel(BaseEstimator):
 
                 y_pred = temp_ensemble._combine_classification_predictions()
 
-                temp_accuracy = accuracy_score(y_test, y_pred)
+                temp_accuracy = (y_pred == y_test).sum() / len(y_test)
 
                 optimization_df = pd.concat(
                     [
