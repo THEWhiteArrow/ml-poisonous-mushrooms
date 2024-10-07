@@ -119,7 +119,7 @@ class EnsembleModel(BaseEstimator):
 
             bitmap = 2 ** len(self.models) - 1
 
-            for j in range(bitmap + 1):
+            for j in range(1, bitmap + 1):
                 temp_combination_names = [
                     self.combination_names[k]
                     for k in range(len(self.models))

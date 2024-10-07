@@ -28,7 +28,7 @@ def create_optimal_ensemble_model(
         model_path = hyper_models_dir_path / f"{model_name}.pkl"
 
         model_data = cast(HyperOptResultDict, pickle.load(open(model_path, "rb")))
-
+        model_data["name"] = model_name
         hyper_opt_results.append(model_data)
 
     logger.info("All models has been loaded")
