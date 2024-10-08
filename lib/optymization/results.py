@@ -12,12 +12,12 @@ logger = setup_logger(__name__)
 
 def load_hyper_opt_results(
     model_run: str,
-    output_dit_path: Path,
+    output_dir_path: Path,
     hyper_opt_prefix: str,
 ) -> List[HyperOptResultDict]:
     logger.info(f"Loading hyper opt results for run {model_run}...")
 
-    hyper_opt_results_dir_path = output_dit_path / f"{hyper_opt_prefix}{model_run}"
+    hyper_opt_results_dir_path = output_dir_path / f"{hyper_opt_prefix}{model_run}"
 
     if not hyper_opt_results_dir_path.exists():
         logger.error(f"Directory {hyper_opt_results_dir_path} does not exist.")
