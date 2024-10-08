@@ -32,7 +32,7 @@ if __name__ == "__main__":
         selected_model_names=selected_model_names,
         hyper_model_run=model_run,
         n_cv=5,
-        limit_data_percentage=0.1,
+        limit_data_percentage=0.5,
         id_column="id",
     )
 
