@@ -43,7 +43,7 @@ def create_optimal_ensemble_model(
 
     logger.info("Loading data")
     train, test = function_dto["load_data_func"]()
-
+    logger.info(f"Using {limit_data_percentage * 100}% data")
     train = train.head(int(len(train) * limit_data_percentage))
     logger.info("Engineering features")
     engineered_data = function_dto["engineer_features_func"](train).set_index("id")

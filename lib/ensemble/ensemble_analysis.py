@@ -34,6 +34,7 @@ def analyse_ensemble(
 
     train, test = function_dto["load_data_func"]()
 
+    logger.info(f"Using {limit_data_percentage * 100}% data")
     train = train.head(int(len(train) * limit_data_percentage))
 
     engineered_data = function_dto["engineer_features_func"](train).set_index(id_column)
