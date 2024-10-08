@@ -52,14 +52,3 @@ def setup_ensemble(
         index=True,
     )
     logger.info("Optimization results have been saved.")
-
-    logger.info("Analyzing ensemble model...")
-    analyse_ensemble(
-        model_run=setup_dto["hyper_model_run"],
-        ensemble_model=ensemble_model,
-        n_cv=setup_dto["n_cv"],
-        id_column=setup_dto["id_column"],
-        ensemble_model_dir_path=setup_dto["ensemble_model_dir_path"],
-        limit_data_percentage=setup_dto["limit_data_percentage"],
-        function_dto=function_dto,
-    )
