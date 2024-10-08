@@ -22,8 +22,8 @@ def setup_ensemble(
         hyper_models_dir_path=setup_dto["hyper_models_dir_path"],
         limit_data_percentage=setup_dto["limit_data_percentage"],
         n_cv=setup_dto["n_cv"],
+        processes=setup_dto["processes"],
         function_dto=function_dto,
-        force_all_models=setup_dto["force_all_models"],
     )
 
     logger.info("Saving ensemble model...")

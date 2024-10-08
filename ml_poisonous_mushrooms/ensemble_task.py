@@ -32,9 +32,9 @@ if __name__ == "__main__":
         selected_model_names=selected_model_names,
         hyper_model_run=model_run,
         n_cv=5,
-        limit_data_percentage=0.5,
+        limit_data_percentage=1.0,
         id_column="id",
-        force_all_models=False,
+        processes=-1,
     )
 
     ensemble_function_dto = EnsembleFunctionDto(

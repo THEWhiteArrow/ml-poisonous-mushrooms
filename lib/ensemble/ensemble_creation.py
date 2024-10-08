@@ -24,7 +24,7 @@ class EnsembleSetupDto(TypedDict):
     n_cv: int
     id_column: List[str] | str
     limit_data_percentage: float
-    force_all_models: bool
+    processes: int
 
 
 def create_ensemble_model(
@@ -32,7 +32,7 @@ def create_ensemble_model(
     hyper_models_dir_path: Path,
     limit_data_percentage: float,
     n_cv: int,
-    force_all_models: bool,
+    processes: int,
     function_dto: EnsembleFunctionDto,
 ) -> Tuple[EnsembleModel, pd.DataFrame]:
 
@@ -66,10 +66,7 @@ def create_ensemble_model(
 
     logger.info("Running optimization")
     final_ensemble_model, ensemble_result_df = ensemble_model.optimize(
-        X=engineered_data,
-        y=engineered_data["class"],
-        n_cv=n_cv,
-        force_all_models=force_all_models,
+        X=engineered_data, y=engineered_data["class"], n_cv=n_cv, processes=processes
     )
 
     return final_ensemble_model, ensemble_result_df

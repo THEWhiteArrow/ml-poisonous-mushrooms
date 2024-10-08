@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple
 from dataclasses import dataclass
+import multiprocessing as mp
 
 import numpy as np
 import pandas as pd
@@ -97,20 +98,57 @@ class EnsembleModel(BaseEstimator):
         final_vote = votes.idxmax(axis=1)
         return final_vote
 
-    def optimize(
-        self, n_cv: int, X: pd.DataFrame, y: pd.Series, force_all_models: bool = False
-    ) -> Tuple["EnsembleModel", pd.DataFrame]:
-        logger.info(
-            "Optimizing ensemble model | "
-            + ("Force all models" if force_all_models else "Optimizing with bitmap")
+    def _evaluate_combination(self, j: int, y_test: pd.Series) -> Tuple[str, float]:
+
+        if self.processing_pipelines is None:
+            raise ValueError("The ensemble model has not been fitted yet")
+
+        if self.predictions is None:
+            raise ValueError("The ensemble model has not been predicted yet")
+
+        temp_combination_names = [
+            self.combination_names[k] for k in range(len(self.models)) if j & (1 << k)
+        ]
+        temp_combination_names_string = "-".join(temp_combination_names)
+
+        temp_ensemble = EnsembleModel(
+            models=[self.models[k] for k in range(len(self.models)) if j & (1 << k)],
+            combination_feature_lists=[
+                self.combination_feature_lists[k]
+                for k in range(len(self.models))
+                if j & (1 << k)
+            ],
+            combination_names=temp_combination_names,
+            scores=[self.scores[k] for k in range(len(self.models)) if j & (1 << k)],
+            processing_pipelines=[
+                self.processing_pipelines[k]
+                for k in range(len(self.models))
+                if j & (1 << k)
+            ],
+            predictions=[
+                self.predictions[k] for k in range(len(self.models)) if j & (1 << k)
+            ],
         )
 
+        y_pred = temp_ensemble._combine_classification_predictions()
+
+        temp_accuracy = (y_pred == y_test).sum() / len(y_test)
+
+        return temp_combination_names_string, temp_accuracy
+
+    def optimize(
+        self,
+        n_cv: int,
+        X: pd.DataFrame,
+        y: pd.Series,
+        processes: int = -1,
+    ) -> Tuple["EnsembleModel", pd.DataFrame]:
+        logger.info("Optimizing ensemble model | " + "Optimizing with bitmap")
+
+        processes = mp.cpu_count() if processes == -1 else processes
         kfold = KFold(n_splits=n_cv)
 
-        results_df = pd.DataFrame(columns=["combination", "fold", "score"])
-        results_df = results_df.astype(
-            {"combination": str, "fold": int, "score": float}
-        )
+        results_list: List[Tuple[str, int, float]] = []
 
         for i, (train_index, test_index) in enumerate(kfold.split(X)):
             X_train, X_test = X.iloc[train_index], X.iloc[test_index]
@@ -125,99 +163,30 @@ class EnsembleModel(BaseEstimator):
             if self.predictions is None:
                 raise ValueError("The ensemble model has not been predicted yet")
 
-            if force_all_models:
-                logger.info("Forcing all models to be used")
-                logger.info("Just analyzing the ensemble model")
+            with mp.Pool(processes) as pool:
+                tasks = [
+                    pool.apply_async(
+                        self._evaluate_combination,
+                        args=(j, y_test),
+                    )
+                    for j in range(1, 2 ** len(self.models))
+                ]
 
-                for j, prediction in enumerate(self.predictions):
-                    temp_accuracy = (prediction == y_test).sum() / len(y_test)
+                for k, task in enumerate(tasks, start=1):
+                    log_interval = max(1, (2 ** len(self.models)) // 10)
+                    if k % log_interval == 0:
+                        logger.info(f"Checking combination {k}/{2 ** len(self.models)}")
 
-                    results_df = pd.concat(
-                        [
-                            results_df,
-                            pd.DataFrame(
-                                [[self.combination_names[j], i, temp_accuracy]],
-                                columns=["combination", "fold", "score"],
-                            ),
-                        ],
-                        ignore_index=True,
+                    temp_combination_names_string, temp_accuracy = task.get()
+
+                    results_list.append(
+                        (temp_combination_names_string, i, temp_accuracy)
                     )
 
-                ensemble_pred = self._combine_classification_predictions()
-                results_df = pd.concat(
-                    [
-                        results_df,
-                        pd.DataFrame(
-                            [
-                                [
-                                    "-".join(self.combination_names),
-                                    i,
-                                    (ensemble_pred == y_test).sum() / len(y_test),
-                                ]
-                            ],
-                            columns=["combination", "fold", "score"],
-                        ),
-                    ],
-                    ignore_index=True,
-                )
-
-            else:
-                # TODO IMPORTANT :
-                # This should be using multiprocessing to speed up the process
-                bitmap = 2 ** len(self.models) - 1
-                for j in range(1, bitmap + 1):
-                    if j % 200 == 0:
-                        logger.info(f"Checking combination {j}/{bitmap}")
-                    temp_combination_names = [
-                        self.combination_names[k]
-                        for k in range(len(self.models))
-                        if j & (1 << k)
-                    ]
-                    temp_combination_names_string = "-".join(temp_combination_names)
-
-                    temp_ensemble = EnsembleModel(
-                        models=[
-                            self.models[k]
-                            for k in range(len(self.models))
-                            if j & (1 << k)
-                        ],
-                        combination_feature_lists=[
-                            self.combination_feature_lists[k]
-                            for k in range(len(self.models))
-                            if j & (1 << k)
-                        ],
-                        combination_names=temp_combination_names,
-                        scores=[
-                            self.scores[k]
-                            for k in range(len(self.models))
-                            if j & (1 << k)
-                        ],
-                        processing_pipelines=[
-                            self.processing_pipelines[k]
-                            for k in range(len(self.models))
-                            if j & (1 << k)
-                        ],
-                        predictions=[
-                            self.predictions[k]
-                            for k in range(len(self.models))
-                            if j & (1 << k)
-                        ],
-                    )
-
-                    y_pred = temp_ensemble._combine_classification_predictions()
-
-                    temp_accuracy = (y_pred == y_test).sum() / len(y_test)
-
-                    results_df = pd.concat(
-                        [
-                            results_df,
-                            pd.DataFrame(
-                                [[temp_combination_names_string, i, temp_accuracy]],
-                                columns=["combination", "fold", "score"],
-                            ),
-                        ],
-                        ignore_index=True,
-                    )
+        results_df = pd.DataFrame(
+            results_list,
+            columns=["combination", "fold", "score"],
+        )
 
         results_df = results_df.groupby("combination")["score"].mean()
         logger.info(f"Optimization results: {results_df}")
