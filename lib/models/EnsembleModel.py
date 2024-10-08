@@ -105,11 +105,14 @@ class EnsembleModel(BaseEstimator):
         kfold = KFold(n_splits=n_cv)
 
         optimization_df = pd.DataFrame(columns=["combination", "fold", "score"])
+        optimization_df = optimization_df.astype(
+            {"combination": str, "fold": int, "score": float}
+        )
 
         for i, (train_index, test_index) in enumerate(kfold.split(X)):
             X_train, X_test = X.iloc[train_index], X.iloc[test_index]
             y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-
+            logger.info(f"Optimizing fold {i + 1}")
             self.fit(X_train, y_train)
             if self.processing_pipelines is None:
                 raise ValueError("The ensemble model has not been fitted yet")
@@ -120,6 +123,8 @@ class EnsembleModel(BaseEstimator):
             bitmap = 2 ** len(self.models) - 1
 
             for j in range(1, bitmap + 1):
+                if j % 200 == 0:
+                    logger.info(f"Checking combination {j}/{bitmap}")
                 temp_combination_names = [
                     self.combination_names[k]
                     for k in range(len(self.models))

@@ -48,7 +48,7 @@ def setup_ensemble(
     logger.info("Saving optimization results...")
     optimization_df.to_csv(
         setup_dto["ensemble_model_dir_path"]
-        / f"ensemble_optimization_{setup_dto['hyper_model_run']}.csv",
+        / f"ensemble_optimization_{setup_dto['limit_data_percentage']}_{setup_dto['hyper_model_run']}.csv",
         index=True,
     )
     logger.info("Optimization results have been saved.")
