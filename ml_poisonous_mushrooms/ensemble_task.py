@@ -1,4 +1,4 @@
-from lib.ensemble.ensemble_analysis import EnsembleFunctionDto
+from lib.ensemble.ensemble_creation import EnsembleFunctionDto
 from lib.ensemble.ensemble_setup import EnsembleSetupDto, setup_ensemble
 from lib.logger import setup_logger
 from ml_poisonous_mushrooms.data_load.data_load import load_data, load_ensemble_config
@@ -34,6 +34,7 @@ if __name__ == "__main__":
         n_cv=5,
         limit_data_percentage=0.5,
         id_column="id",
+        force_all_models=False,
     )
 
     ensemble_function_dto = EnsembleFunctionDto(

@@ -1,10 +1,9 @@
 from pathlib import Path
 import pickle
-from typing import List, Tuple, cast
+from typing import Callable, List, Tuple, TypedDict, cast
 
 import pandas as pd
 
-from lib.ensemble.ensemble_analysis import EnsembleFunctionDto
 from lib.logger import setup_logger
 from lib.models.EnsembleModel import EnsembleModel
 from lib.models.HyperOptResultDict import HyperOptResultDict
@@ -12,11 +11,28 @@ from lib.models.HyperOptResultDict import HyperOptResultDict
 logger = setup_logger(__name__)
 
 
-def create_optimal_ensemble_model(
+class EnsembleFunctionDto(TypedDict):
+    load_data_func: Callable[[], Tuple[pd.DataFrame, pd.DataFrame]]
+    engineer_features_func: Callable[[pd.DataFrame], pd.DataFrame]
+
+
+class EnsembleSetupDto(TypedDict):
+    hyper_models_dir_path: Path
+    ensemble_model_dir_path: Path
+    selected_model_names: List[str]
+    hyper_model_run: str
+    n_cv: int
+    id_column: List[str] | str
+    limit_data_percentage: float
+    force_all_models: bool
+
+
+def create_ensemble_model(
     selected_model_names: List[str],
     hyper_models_dir_path: Path,
     limit_data_percentage: float,
     n_cv: int,
+    force_all_models: bool,
     function_dto: EnsembleFunctionDto,
 ) -> Tuple[EnsembleModel, pd.DataFrame]:
 
@@ -48,11 +64,12 @@ def create_optimal_ensemble_model(
     logger.info("Engineering features")
     engineered_data = function_dto["engineer_features_func"](train).set_index("id")
 
-    logger.info("Optimizing ensemble model with bitmap")
-    optimal_ensemble_model, optimization_df = ensemble_model.optimize(
+    logger.info("Running optimization")
+    final_ensemble_model, ensemble_result_df = ensemble_model.optimize(
         X=engineered_data,
         y=engineered_data["class"],
         n_cv=n_cv,
+        force_all_models=force_all_models,
     )
 
-    return optimal_ensemble_model, optimization_df
+    return final_ensemble_model, ensemble_result_df
