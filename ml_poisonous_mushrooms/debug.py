@@ -4,7 +4,6 @@ import json
 import numpy as np
 
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import RidgeClassifier
 from sklearn.model_selection import cross_val_score
 
@@ -25,8 +24,7 @@ def debug_pipelines():
     train, test = load_data()
 
     logger.info("Engineering data...")
-    engineered_data = engineer_features(
-        train.head(10000 * 1000)).set_index("id")
+    engineered_data = engineer_features(train.head(10000 * 1000)).set_index("id")
 
     feature_manager = FeatureManager(
         feature_sets=[
@@ -44,8 +42,7 @@ def debug_pipelines():
             FeatureSet(
                 name="cap",
                 is_optional=True,
-                features=["cap-diameter", "cap-shape",
-                          "cap-surface", "cap-color"],
+                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
             ),
             FeatureSet(
                 name="gill",
@@ -73,7 +70,7 @@ def debug_pipelines():
     model_manager = ModelManager(task="classification")
     hyper_manager = HyperOptManager(
         feature_manager=feature_manager,
-        models=model_manager.get_models(),
+        models=model_manager.get_models(use_additional=[]),
     )
 
     all_model_combinations = hyper_manager.get_model_combinations()
@@ -81,8 +78,7 @@ def debug_pipelines():
     choosen_combination = all_model_combinations[13]
     logger.info(choosen_combination.name)
 
-    X = engineered_data.copy(
-    )[choosen_combination.feature_combination.features]
+    X = engineered_data.copy()[choosen_combination.feature_combination.features]
     y = engineered_data.copy()["class"]
 
     processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=True)
@@ -92,8 +88,7 @@ def debug_pipelines():
 
     # processed_X = pipeline.fit_transform(X=X.copy())
 
-    scores = cross_val_score(estimator=pipeline, X=X,
-                             y=y, cv=5, scoring="accuracy")
+    scores = cross_val_score(estimator=pipeline, X=X, y=y, cv=5, scoring="accuracy")
 
     logger.info(f"Accuracy scores: {scores}")
     logger.info(f"Avg: {scores.mean()}")
@@ -131,8 +126,7 @@ def debug_ensamble():
                 predictions.loc[predictions[name].eq(target)].index, target
             ] += scaled_scores[unique_names.index(name)]
 
-    votes["decision"] = votes.apply(
-        lambda row: row[unique_targets].idxmax(), axis=1)
+    votes["decision"] = votes.apply(lambda row: row[unique_targets].idxmax(), axis=1)
 
     print(votes)
 
@@ -161,8 +155,7 @@ def debug_xgboost():
     train, test = load_data()
 
     logger.info("Engineering data...")
-    engineered_data = engineer_features(
-        train.head(1100 * 1000)).set_index("id")
+    engineered_data = engineer_features(train.head(1100 * 1000)).set_index("id")
 
     feature_manager = FeatureManager(
         feature_sets=[
@@ -180,8 +173,7 @@ def debug_xgboost():
             FeatureSet(
                 name="cap",
                 is_optional=True,
-                features=["cap-diameter", "cap-shape",
-                          "cap-surface", "cap-color"],
+                features=["cap-diameter", "cap-shape", "cap-surface", "cap-color"],
             ),
             FeatureSet(
                 name="gill",
@@ -209,7 +201,7 @@ def debug_xgboost():
     model_manager = ModelManager(task="classification")
     hyper_manager = HyperOptManager(
         feature_manager=feature_manager,
-        models=model_manager.get_models(),
+        models=model_manager.get_models(use_additional=[]),
     )
 
     all_model_combinations = hyper_manager.get_model_combinations()
@@ -224,12 +216,10 @@ def debug_xgboost():
     logger.info(choosen_combination.name)
     model = choosen_combination.model
 
-    X = engineered_data.copy(
-    )[choosen_combination.feature_combination.features]
+    X = engineered_data.copy()[choosen_combination.feature_combination.features]
     y = engineered_data.copy()["class"]
 
-    processing_pipeline_wrapper = ProcessingPipelineWrapper(
-        pandas_output=False)
+    processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
     pipeline = processing_pipeline_wrapper.create_pipeline(model=model)
 
     acc = cross_val_score(pipeline, X, y, cv=5, scoring="accuracy")
@@ -279,7 +269,7 @@ def measure_time() -> float:
     # Measure time to multiply the matrices
     start_time = time.time()
     # Perform matrix multiplication
-    C = np.dot(A, B)
+    _ = np.dot(A, B)
     # Measure end time
     end_time = time.time()
     # Calculate time taken
