@@ -122,6 +122,8 @@ class EnsembleModel(BaseEstimator):
 
             bitmap = 2 ** len(self.models) - 1
 
+            # TODO IMPORTANT :
+            # This should be using multiprocessing to speed up the process
             for j in range(1, bitmap + 1):
                 if j % 200 == 0:
                     logger.info(f"Checking combination {j}/{bitmap}")
