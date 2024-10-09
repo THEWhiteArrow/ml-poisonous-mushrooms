@@ -113,7 +113,11 @@ def evaluate_combination(
     scores: np.ndarray,
     names: ListProxy,
     y_test: np.ndarray,
+    cnt: np.ndarray,
 ) -> Tuple[str, float]:
+    cnt[0] += 1
+    if cnt[0] % cnt[1] == 0:
+        logger.info(f"Evaluating combination {cnt[0]} of {cnt[2]}")
     try:
 
         combination_names: List[str] = [
@@ -150,7 +154,6 @@ def run_parralel_bitmap_processing(
     ensemble_model: EnsembleModel, y_test: pd.Series, fold: int, processes: int
 ) -> List[Tuple[str, int, float]]:
 
-    results_list: List[Tuple[str, int, float]] = []
     if ensemble_model.predictions is None:
         raise ValueError("The ensemble model has not been predicted yet")
 
@@ -182,32 +185,32 @@ def run_parralel_bitmap_processing(
     # Setup for names
     mp_names_np = mp.Manager().list(ensemble_model.combination_names)
 
+    mp_cnt = mp.Array("q", [0, max(1, 2**num_models // 10), 2**num_models])
+
+    logger.info("Starting multiprocessing")
+    results: List[Tuple[str, int, float]] = []
     # --- Multiprocessing ---
     with mp.Pool(processes=processes) as pool:
-        tasks = [
-            pool.apply_async(
-                evaluate_combination,
-                args=(
+        mp_results = pool.starmap(
+            evaluate_combination,
+            [
+                (
                     i,
                     mp_predictions_np,
                     mp_scores_np,
                     mp_names_np,
                     mp_y_true_np,
-                ),
-            )
-            for i in range(1, 2**num_models)
-        ]
+                    mp_cnt,
+                )
+                for i in range(1, 2**num_models)
+            ],
+        )
 
-    log_interval = max(1, 2 ** (num_models - 1) // 10)
-    for i, task in enumerate(tasks):
-        if i % log_interval == 0:
-            logger.info(f"Processing combination {i} out of {len(tasks)}")
-
-        combination_names, accuracy = task.get()
-
-        results_list.append((combination_names, fold, accuracy))
-
-    return results_list
+    results = [
+        (combination_names, fold, accuracy)
+        for combination_names, accuracy in mp_results
+    ]
+    return results
 
 
 def optimize_ensemble(
