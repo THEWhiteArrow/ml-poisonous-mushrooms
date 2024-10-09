@@ -113,13 +113,7 @@ def evaluate_combination(
     scores: np.ndarray,
     names: ListProxy,
     y_test: np.ndarray,
-    cnt: np.ndarray,
 ) -> Tuple[str, float]:
-    cnt[0] += 1
-    if cnt[0] % cnt[1] == 0:
-        logger.info(
-            f"Evaluating combination {bitmap} | ordered {cnt[0]} of {cnt[2]} | {cnt[0] / cnt[2] * 100:.2f}%"
-        )
     try:
 
         combination_names: List[str] = [
@@ -187,8 +181,6 @@ def run_parralel_bitmap_processing(
     # Setup for names
     mp_names_np = mp.Manager().list(ensemble_model.combination_names)
 
-    mp_cnt = mp.Array("q", [0, max(1, 2**num_models // 10), 2**num_models])
-
     logger.info("Starting multiprocessing")
     results: List[Tuple[str, int, float]] = []
     # --- Multiprocessing ---
@@ -202,7 +194,6 @@ def run_parralel_bitmap_processing(
                     mp_scores_np,
                     mp_names_np,
                     mp_y_true_np,
-                    mp_cnt,
                 )
                 for i in range(1, 2**num_models)
             ],
