@@ -64,7 +64,9 @@ class EnsembleModel(BaseEstimator):
 
         return combined_prediction
 
-    def _combine_classification_predictions(self) -> pd.Series:
+    def _combine_classification_predictions(
+        self, bitmap: Optional[int] = None
+    ) -> pd.Series:
         """A function that combines the classification predictions of multiple models into a single prediction based on the scores of the models in the ensemble.
         It takes into account how much of the total score each model has and assigns the final prediction based on that.
 
@@ -77,7 +79,17 @@ class EnsembleModel(BaseEstimator):
         if self.predictions is None:
             raise ValueError("The ensemble model has not been predicted yet")
 
-        data = pd.concat(self.predictions, axis=1)
+        if bitmap is not None:
+            data = pd.concat(
+                [
+                    self.predictions[i]
+                    for i in range(len(self.predictions))
+                    if bitmap & (1 << i)
+                ],
+                axis=1,
+            )
+        else:
+            data = pd.concat(self.predictions, axis=1)
 
         unique_targets = pd.unique(data.values.ravel())
 
@@ -88,6 +100,10 @@ class EnsembleModel(BaseEstimator):
         target_to_idx = {target: idx for idx, target in enumerate(unique_targets)}
 
         for model_idx, model_name in enumerate(self.combination_names):
+
+            if bitmap is not None and not bitmap & (1 << model_idx):
+                continue
+
             model_predictions = data[model_name]
 
             for target_value, target_idx in target_to_idx.items():

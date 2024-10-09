@@ -1,9 +1,9 @@
 import gc
 from pathlib import Path
 import pickle
-import signal
 from typing import Callable, List, Tuple, TypedDict, cast
 import multiprocessing as mp
+
 
 import pandas as pd
 import psutil
@@ -120,6 +120,42 @@ def evaluate_combination(
     return combination_names_string, accuracy
 
 
+def run_parralel_bitmap_processing(
+    ensemble_model: EnsembleModel, y_test: pd.Series, processes: int
+) -> List[Tuple[str, int, float]]:
+
+    if ensemble_model.predictions is None:
+        raise ValueError("The ensemble model has not been predicted yet")
+
+    # Number of models in the ensemble
+    num_models = len(ensemble_model.predictions)
+
+    # Generate all possible combinations (2^num_models)
+    num_combinations = range(1, 2**num_models)
+    results_list: List[Tuple[str, int, float]] = []
+
+    log_interval = 2 ** (num_models - 1) // 10
+
+    for j in num_combinations:
+        if j % log_interval == 0:
+            logger.info(f"Processing combination {j}/{2**num_models}")
+
+        y_pred = ensemble_model._combine_classification_predictions(j)
+
+        combination_name = "-".join(
+            [
+                ensemble_model.combination_names[k]
+                for k in range(num_models)
+                if j & (1 << k)
+            ]
+        )
+        y_accuracy = (y_pred == y_test).sum() / len(y_test)
+
+        results_list.append((combination_name, j, y_accuracy))
+
+    return results_list
+
+
 def optimize_ensemble(
     ensemble_model: EnsembleModel,
     X: pd.DataFrame,
@@ -151,64 +187,12 @@ def optimize_ensemble(
         logger.info(f"Evaluating combinations with {processes} processes")
 
         log_system_usage("Before multiprocessing starts")
-        chunk_size = 2 ** len(ensemble_model.models) // processes
-        combinations = [
-            (
-                y_test,
-                [
-                    ensemble_model.combination_names[k]
-                    for k in range(len(ensemble_model.models))
-                    if j & (1 << k)
-                ],
-                [
-                    ensemble_model.scores[k]
-                    for k in range(len(ensemble_model.models))
-                    if j & (1 << k)
-                ],
-                [
-                    ensemble_model.predictions[k].copy()
-                    for k in range(len(ensemble_model.models))
-                    if j & (1 << k)
-                ],
-            )
-            for j in range(1, 2 ** len(ensemble_model.models))
-        ]
-        for chunk_start in range(0, len(combinations), chunk_size):
-            logger.info(f"Starting chunk {chunk_start}/{len(combinations)}")
-            chunk = combinations[chunk_start : chunk_start + chunk_size]
 
-            log_system_usage(f"Processing chunk {chunk_start}")
-            with mp.Pool(
-                processes=processes,
-                initializer=lambda: signal.signal(signal.SIGINT, signal.SIG_IGN),
-            ) as pool:
+        results_list.extend(
+            run_parralel_bitmap_processing(ensemble_model, y_test, processes)
+        )
 
-                tasks = []
-
-                for idx, combination in enumerate(chunk):
-                    tasks.append(
-                        pool.apply_async(
-                            evaluate_combination,
-                            combination,
-                            error_callback=lambda e: logger.error(
-                                f"Error in task {idx}: {e}"
-                            ),
-                        )
-                    )
-
-                log_interval = max(1, chunk_size // 10)
-                for h, task in enumerate(tasks):
-                    if h % log_interval == 0:
-                        logger.info(f"Waiting for evaluation of combination: {h}")
-                    temp_combination_names_string, temp_accuracy = task.get()
-                    results_list.append(
-                        (temp_combination_names_string, h, temp_accuracy)
-                    )
-
-            del chunk
-            gc.collect()
-
-            log_system_usage(f"Finished processing chunk {chunk_start}")
+        log_system_usage(f"Finished fold {cnt + 1}")
 
     log_system_usage("After optimization")
     results_df = pd.DataFrame(
