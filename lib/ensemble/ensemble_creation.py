@@ -79,7 +79,6 @@ def create_ensemble_model(
 
 
 def evaluate_combination(
-    j: int,
     y_test: pd.Series,
     combination_names: List[str],
     scores: List[float],
@@ -138,7 +137,6 @@ def optimize_ensemble(
                 pool.apply_async(
                     evaluate_combination,
                     (
-                        j,
                         y_test,
                         [
                             ensemble_model.combination_names[k]
