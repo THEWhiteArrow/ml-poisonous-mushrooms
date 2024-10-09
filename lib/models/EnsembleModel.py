@@ -1,3 +1,4 @@
+import gc
 from typing import List, Optional
 from dataclasses import dataclass
 
@@ -57,7 +58,7 @@ class EnsembleModel(BaseEstimator):
                 raw_prediction, index=X.index, name=self.combination_names[i]
             )
 
-            self.predictions.append(prediction.copy())
+            self.predictions.append(prediction)
 
         combined_prediction = self._combine_classification_predictions()
 
@@ -75,23 +76,30 @@ class EnsembleModel(BaseEstimator):
         """
         if self.predictions is None:
             raise ValueError("The ensemble model has not been predicted yet")
-        data = pd.DataFrame(index=self.predictions[0].index)
 
-        for i, prediction in enumerate(self.predictions):
-            data = data.join(prediction, how="left")
+        data = pd.concat(self.predictions, axis=1)
 
-        unique_targets = list(set(data.values.flatten()))
+        unique_targets = pd.unique(data.values.ravel())
 
-        scaled_scores = np.array(self.scores) / sum(self.scores)
+        scaled_scores = np.array(self.scores) / np.sum(self.scores)
 
-        votes = pd.DataFrame(index=data.index, columns=unique_targets)
-        votes.loc[:, :] = 0.0
+        votes = np.zeros((data.shape[0], len(unique_targets)), dtype=np.float32)
 
-        for name in self.combination_names:
-            for target in unique_targets:
-                votes.loc[
-                    data.loc[data[name].eq(target)].index, target
-                ] += scaled_scores[self.combination_names.index(name)]
+        target_to_idx = {target: idx for idx, target in enumerate(unique_targets)}
 
-        final_vote = votes.idxmax(axis=1)
+        for model_idx, model_name in enumerate(self.combination_names):
+            model_predictions = data[model_name]
+
+            for target_value, target_idx in target_to_idx.items():
+                votes[:, target_idx] += np.where(
+                    model_predictions == target_value, scaled_scores[model_idx], 0
+                )
+
+        final_vote_idx = np.argmax(votes, axis=1)
+        final_vote = pd.Series(unique_targets[final_vote_idx], index=data.index)
+
+        del data
+        del votes
+        gc.collect()
+
         return final_vote

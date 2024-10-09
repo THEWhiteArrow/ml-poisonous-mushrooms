@@ -6,6 +6,7 @@ from typing import Callable, List, Tuple, TypedDict, cast
 import multiprocessing as mp
 
 import pandas as pd
+import psutil
 from sklearn.model_selection import KFold
 
 from lib.logger import setup_logger
@@ -29,6 +30,15 @@ class EnsembleSetupDto(TypedDict):
     id_column: List[str] | str
     limit_data_percentage: float
     processes: int
+
+
+def log_system_usage(message=""):
+    # Get memory info
+    mem = psutil.virtual_memory()
+    # Get CPU usage
+    cpu_percent = psutil.cpu_percent(interval=1)
+
+    logger.info(f"{message} | Memory used: {mem.percent}% | CPU used: {cpu_percent}%")
 
 
 def create_ensemble_model(
@@ -103,6 +113,8 @@ def evaluate_combination(
     accuracy = (y_pred == y_test).sum() / len(y_test)
 
     del temp_ensemble
+    del y_pred
+
     gc.collect()
 
     return combination_names_string, accuracy
@@ -126,6 +138,8 @@ def optimize_ensemble(
         y_train, y_test = y.iloc[train_index], y.iloc[test_index]
         logger.info(f"Optimizing fold {cnt + 1}")
 
+        log_system_usage("Before fitting ensemble model")
+
         ensemble_model.fit(X_train, y_train)
         if ensemble_model.processing_pipelines is None:
             raise ValueError("The ensemble model has not been fitted yet")
@@ -136,6 +150,7 @@ def optimize_ensemble(
 
         logger.info(f"Evaluating combinations with {processes} processes")
 
+        log_system_usage("Before multiprocessing starts")
         chunk_size = 2 ** len(ensemble_model.models) // processes
         combinations = [
             (
@@ -161,6 +176,8 @@ def optimize_ensemble(
         for chunk_start in range(0, len(combinations), chunk_size):
             logger.info(f"Starting chunk {chunk_start}/{len(combinations)}")
             chunk = combinations[chunk_start : chunk_start + chunk_size]
+
+            log_system_usage(f"Processing chunk {chunk_start}")
             with mp.Pool(
                 processes=processes,
                 initializer=lambda: signal.signal(signal.SIGINT, signal.SIG_IGN),
@@ -179,7 +196,7 @@ def optimize_ensemble(
                         )
                     )
 
-                log_interval = max(1, 2 ** len(ensemble_model.models) // 10)
+                log_interval = max(1, chunk_size // 10)
                 for h, task in enumerate(tasks):
                     if h % log_interval == 0:
                         logger.info(f"Waiting for evaluation of combination: {h}")
@@ -191,6 +208,9 @@ def optimize_ensemble(
             del chunk
             gc.collect()
 
+            log_system_usage(f"Finished processing chunk {chunk_start}")
+
+    log_system_usage("After optimization")
     results_df = pd.DataFrame(
         results_list,
         columns=["combination", "fold", "score"],
