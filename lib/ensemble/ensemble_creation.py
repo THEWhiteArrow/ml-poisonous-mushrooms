@@ -160,10 +160,13 @@ def optimize_ensemble(
                         ],
                     ),
                 )
-                for j in range(1, 20)
+                for j in range(1, 2 ** len(ensemble_model.models))
             ]
 
+            log_interval = max(1, 2 ** len(ensemble_model.models) // 10)
             for h, task in enumerate(tasks):
+                if h % log_interval == 0:
+                    logger.info(f"Waiting for evaluation of combination: {h}")
                 temp_combination_names_string, temp_accuracy = task.get()
                 results_list.append((temp_combination_names_string, h, temp_accuracy))
 
