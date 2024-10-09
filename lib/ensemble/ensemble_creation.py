@@ -1,10 +1,12 @@
 import gc
+from multiprocessing.managers import ListProxy
 from pathlib import Path
 import pickle
 from typing import Callable, List, Tuple, TypedDict, cast
 import multiprocessing as mp
 
 
+import numpy as np
 import pandas as pd
 import psutil
 from sklearn.model_selection import KFold
@@ -90,68 +92,120 @@ def create_ensemble_model(
     return final_ensemble_model, ensemble_result_df
 
 
+def extract_names(mp_names_np: np.ndarray) -> List[str]:
+    names = []
+    current_name = bytearray()  # Use bytearray to build each name
+
+    for byte in mp_names_np:
+        if byte == 0:  # Check for null terminator
+            if current_name:  # If there's a name collected
+                names.append(current_name.decode())  # Decode and add to the list
+                current_name = bytearray()  # Reset for the next name
+        else:
+            current_name.append(byte)  # Add byte to the current name
+
+    return names
+
+
 def evaluate_combination(
-    y_test: pd.Series,
-    combination_names: List[str],
-    scores: List[float],
-    predictions: List[pd.Series],
+    bitmap: int,
+    predictions: np.ndarray,
+    scores: np.ndarray,
+    names: ListProxy,
+    y_test: np.ndarray,
 ) -> Tuple[str, float]:
+    try:
 
-    combination_names_string = "-".join(combination_names)
+        combination_names: List[str] = [
+            names[i] for i in range(len(names)) if bitmap & (1 << i)
+        ]
 
-    temp_ensemble = EnsembleModel(
-        models=[],
-        combination_feature_lists=[],
-        combination_names=combination_names,
-        scores=scores,
-        processing_pipelines=[],
-        predictions=predictions,
-    )
+        combination_predictions = predictions[
+            (bitmap & (1 << np.arange(predictions.shape[0]))).astype(bool)
+        ]
 
-    y_pred = temp_ensemble._combine_classification_predictions()
+        combination_scores = scores[
+            (bitmap & (1 << np.arange(scores.shape[0]))).astype(bool)
+        ]
 
-    accuracy = (y_pred == y_test).sum() / len(y_test)
+        combination_y_pred = EnsembleModel._combine_classification_predictions(
+            predictions=[pd.Series(pred) for pred in combination_predictions],
+            scores=[score for score in combination_scores],
+            combination_names=combination_names,
+        )
 
-    del temp_ensemble
-    del y_pred
+        combination_accuracy = (combination_y_pred == y_test).sum() / len(y_test)
 
-    gc.collect()
+        del combination_y_pred
 
-    return combination_names_string, accuracy
+        gc.collect()
+
+        return "-".join(combination_names), combination_accuracy
+    except Exception as e:
+        logger.error(f"Error in evaluate_combination: {e}")
+        raise e
 
 
 def run_parralel_bitmap_processing(
-    ensemble_model: EnsembleModel, y_test: pd.Series, processes: int
+    ensemble_model: EnsembleModel, y_test: pd.Series, fold: int, processes: int
 ) -> List[Tuple[str, int, float]]:
 
+    results_list: List[Tuple[str, int, float]] = []
     if ensemble_model.predictions is None:
         raise ValueError("The ensemble model has not been predicted yet")
 
     # Number of models in the ensemble
     num_models = len(ensemble_model.predictions)
+    n_samples = len(y_test)
 
-    # Generate all possible combinations (2^num_models)
-    num_combinations = range(1, 2**num_models)
-    results_list: List[Tuple[str, int, float]] = []
+    # --- Multiprocessing setup ---
+    mp_predictions = mp.Array(
+        "q", num_models * n_samples
+    )  # Double type for predictions
+    mp_predictions_np = np.frombuffer(mp_predictions.get_obj()).reshape(
+        num_models, n_samples
+    )
+    # Ensure the shared array is filled with predictions
+    for i in range(num_models):
+        mp_predictions_np[i] = ensemble_model.predictions[i].to_numpy()
 
-    log_interval = 2 ** (num_models - 1) // 10
+    # Setup for targets (use int64 type)
+    mp_y_true = mp.Array("q", n_samples)  # Use 'q' for int64
+    mp_y_true_np = np.frombuffer(mp_y_true.get_obj())
+    mp_y_true_np[:] = y_test.to_numpy()  # Assign values to the shared array
 
-    for j in num_combinations:
-        if j % log_interval == 0:
-            logger.info(f"Processing combination {j}/{2**num_models}")
+    # Setup for scores
+    mp_scores = mp.Array("d", len(ensemble_model.scores))
+    mp_scores_np = np.frombuffer(mp_scores.get_obj())
+    mp_scores_np[:] = ensemble_model.scores  # Assign values to the shared array
 
-        y_pred = ensemble_model._combine_classification_predictions(j)
+    # Setup for names
+    mp_names_np = mp.Manager().list(ensemble_model.combination_names)
 
-        combination_name = "-".join(
-            [
-                ensemble_model.combination_names[k]
-                for k in range(num_models)
-                if j & (1 << k)
-            ]
-        )
-        y_accuracy = (y_pred == y_test).sum() / len(y_test)
+    # --- Multiprocessing ---
+    with mp.Pool(processes=processes) as pool:
+        tasks = [
+            pool.apply_async(
+                evaluate_combination,
+                args=(
+                    i,
+                    mp_predictions_np,
+                    mp_scores_np,
+                    mp_names_np,
+                    mp_y_true_np,
+                ),
+            )
+            for i in range(1, 2**num_models)
+        ]
 
-        results_list.append((combination_name, j, y_accuracy))
+    log_interval = max(1, 2 ** (num_models - 1) // 10)
+    for i, task in enumerate(tasks):
+        if i % log_interval == 0:
+            logger.info(f"Processing combination {i} out of {len(tasks)}")
+
+        combination_names, accuracy = task.get()
+
+        results_list.append((combination_names, fold, accuracy))
 
     return results_list
 
@@ -189,7 +243,7 @@ def optimize_ensemble(
         log_system_usage("Before multiprocessing starts")
 
         results_list.extend(
-            run_parralel_bitmap_processing(ensemble_model, y_test, processes)
+            run_parralel_bitmap_processing(ensemble_model, y_test, cnt, processes)
         )
 
         log_system_usage(f"Finished fold {cnt + 1}")

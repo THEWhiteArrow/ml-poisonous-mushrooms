@@ -60,12 +60,17 @@ class EnsembleModel(BaseEstimator):
 
             self.predictions.append(prediction)
 
-        combined_prediction = self._combine_classification_predictions()
+        combined_prediction = EnsembleModel._combine_classification_predictions(
+            predictions=self.predictions,
+            scores=self.scores,
+            combination_names=self.combination_names,
+        )
 
         return combined_prediction
 
+    @staticmethod
     def _combine_classification_predictions(
-        self, bitmap: Optional[int] = None
+        predictions: List[pd.Series], scores: List[float], combination_names: List[str]
     ) -> pd.Series:
         """A function that combines the classification predictions of multiple models into a single prediction based on the scores of the models in the ensemble.
         It takes into account how much of the total score each model has and assigns the final prediction based on that.
@@ -76,35 +81,22 @@ class EnsembleModel(BaseEstimator):
         Returns:
             pd.Series: A Series with the final prediction
         """
-        if self.predictions is None:
+        if predictions is None:
             raise ValueError("The ensemble model has not been predicted yet")
 
-        if bitmap is not None:
-            data = pd.concat(
-                [
-                    self.predictions[i]
-                    for i in range(len(self.predictions))
-                    if bitmap & (1 << i)
-                ],
-                axis=1,
-            )
-        else:
-            data = pd.concat(self.predictions, axis=1)
+        data = pd.concat(predictions, axis=1)
 
         unique_targets = pd.unique(data.values.ravel())
 
-        scaled_scores = np.array(self.scores) / np.sum(self.scores)
+        scaled_scores = np.array(scores) / np.sum(scores)
 
         votes = np.zeros((data.shape[0], len(unique_targets)), dtype=np.float32)
 
         target_to_idx = {target: idx for idx, target in enumerate(unique_targets)}
 
-        for model_idx, model_name in enumerate(self.combination_names):
+        for model_idx, model_name in enumerate(combination_names):
 
-            if bitmap is not None and not bitmap & (1 << model_idx):
-                continue
-
-            model_predictions = data[model_name]
+            model_predictions = data[data.columns[model_idx]]
 
             for target_value, target_idx in target_to_idx.items():
                 votes[:, target_idx] += np.where(
