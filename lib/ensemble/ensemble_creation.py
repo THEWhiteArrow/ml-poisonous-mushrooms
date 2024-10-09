@@ -86,7 +86,6 @@ def evaluate_combination(
     predictions: List[pd.Series],
 ) -> Tuple[str, float]:
 
-    logger.info(f"Evaluating combination {j}")
     combination_names_string = "-".join(combination_names)
 
     temp_ensemble = EnsembleModel(
@@ -101,8 +100,6 @@ def evaluate_combination(
     y_pred = temp_ensemble._combine_classification_predictions()
 
     accuracy = (y_pred == y_test).sum() / len(y_test)
-
-    logger.info(f"Finished evaluating combination {j}")
 
     return combination_names_string, accuracy
 
