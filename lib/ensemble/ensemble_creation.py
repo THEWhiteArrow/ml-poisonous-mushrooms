@@ -117,7 +117,9 @@ def evaluate_combination(
 ) -> Tuple[str, float]:
     cnt[0] += 1
     if cnt[0] % cnt[1] == 0:
-        logger.info(f"Evaluating combination {cnt[0]} of {cnt[2]}")
+        logger.info(
+            f"Evaluating combination {bitmap} | ordered {cnt[0]} of {cnt[2]} | {cnt[0] / cnt[2] * 100:.2f}%"
+        )
     try:
 
         combination_names: List[str] = [
