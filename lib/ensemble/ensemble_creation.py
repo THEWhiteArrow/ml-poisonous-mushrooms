@@ -1,5 +1,7 @@
+import gc
 from pathlib import Path
 import pickle
+import signal
 from typing import Callable, List, Tuple, TypedDict, cast
 import multiprocessing as mp
 
@@ -100,6 +102,9 @@ def evaluate_combination(
 
     accuracy = (y_pred == y_test).sum() / len(y_test)
 
+    del temp_ensemble
+    gc.collect()
+
     return combination_names_string, accuracy
 
 
@@ -131,39 +136,60 @@ def optimize_ensemble(
 
         logger.info(f"Evaluating combinations with {processes} processes")
 
-        with mp.Pool(processes=processes) as pool:
+        chunk_size = 2 ** len(ensemble_model.models) // processes
+        combinations = [
+            (
+                y_test,
+                [
+                    ensemble_model.combination_names[k]
+                    for k in range(len(ensemble_model.models))
+                    if j & (1 << k)
+                ],
+                [
+                    ensemble_model.scores[k]
+                    for k in range(len(ensemble_model.models))
+                    if j & (1 << k)
+                ],
+                [
+                    ensemble_model.predictions[k].copy()
+                    for k in range(len(ensemble_model.models))
+                    if j & (1 << k)
+                ],
+            )
+            for j in range(1, 2 ** len(ensemble_model.models))
+        ]
+        for chunk_start in range(0, len(combinations), chunk_size):
+            logger.info(f"Starting chunk {chunk_start}/{len(combinations)}")
+            chunk = combinations[chunk_start : chunk_start + chunk_size]
+            with mp.Pool(
+                processes=processes,
+                initializer=lambda: signal.signal(signal.SIGINT, signal.SIG_IGN),
+            ) as pool:
 
-            tasks = [
-                pool.apply_async(
-                    evaluate_combination,
-                    (
-                        y_test,
-                        [
-                            ensemble_model.combination_names[k]
-                            for k in range(len(ensemble_model.models))
-                            if j & (1 << k)
-                        ],
-                        [
-                            ensemble_model.scores[k]
-                            for k in range(len(ensemble_model.models))
-                            if j & (1 << k)
-                        ],
-                        [
-                            ensemble_model.predictions[k].copy()
-                            for k in range(len(ensemble_model.models))
-                            if j & (1 << k)
-                        ],
-                    ),
-                )
-                for j in range(1, 2 ** len(ensemble_model.models))
-            ]
+                tasks = []
 
-            log_interval = max(1, 2 ** len(ensemble_model.models) // 10)
-            for h, task in enumerate(tasks):
-                if h % log_interval == 0:
-                    logger.info(f"Waiting for evaluation of combination: {h}")
-                temp_combination_names_string, temp_accuracy = task.get()
-                results_list.append((temp_combination_names_string, h, temp_accuracy))
+                for idx, combination in enumerate(chunk):
+                    tasks.append(
+                        pool.apply_async(
+                            evaluate_combination,
+                            combination,
+                            error_callback=lambda e: logger.error(
+                                f"Error in task {idx}: {e}"
+                            ),
+                        )
+                    )
+
+                log_interval = max(1, 2 ** len(ensemble_model.models) // 10)
+                for h, task in enumerate(tasks):
+                    if h % log_interval == 0:
+                        logger.info(f"Waiting for evaluation of combination: {h}")
+                    temp_combination_names_string, temp_accuracy = task.get()
+                    results_list.append(
+                        (temp_combination_names_string, h, temp_accuracy)
+                    )
+
+            del chunk
+            gc.collect()
 
     results_df = pd.DataFrame(
         results_list,
