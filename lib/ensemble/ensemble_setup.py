@@ -23,6 +23,7 @@ def setup_ensemble(
         limit_data_percentage=setup_dto["limit_data_percentage"],
         n_cv=setup_dto["n_cv"],
         processes=setup_dto["processes"],
+        optimize=setup_dto["optimize"],
         function_dto=function_dto,
     )
 

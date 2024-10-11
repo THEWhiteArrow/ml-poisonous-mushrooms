@@ -35,6 +35,7 @@ if __name__ == "__main__":
         limit_data_percentage=1.0,
         id_column="id",
         processes=-1,
+        optimize=True,
     )
 
     ensemble_function_dto = EnsembleFunctionDto(

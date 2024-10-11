@@ -1,17 +1,11 @@
 {
 	"model_combination_names": [
 		"CatBoostClassifier_stem_cap_gill_ringandveil_other__top_0",
-		"XGBClassifier_stem_cap_gill_ringandveil_other__top_0",
 		"XGBClassifier_stem_cap_gill_ringandveil_other__top_1",
 		"XGBClassifier_stem_cap_gill_ringandveil_other__top_2",
 		"CatBoostClassifier_stem_cap_gill_ringandveil_other__top_1",
-		"CatBoostClassifier_stem_cap_gill_ringandveil_other__top_2",
 		"LGBMClassifier_stem_cap_gill_ringandveil_other__top_0",
-		"LGBMClassifier_stem_cap_gill_ringandveil_other__top_1",
-		"LGBMClassifier_stem_cap_gill_ringandveil_other__top_2",
-		"RidgeClassifier_stem_cap_gill_ringandveil_other__top_0",
-		"RidgeClassifier_stem_cap_gill_ringandveil_other__top_1",
-		"RidgeClassifier_stem_cap_gill_ringandveil_other__top_2"
+		"LGBMClassifier_stem_cap_gill_ringandveil_other__top_1"
 	],
 	"model_run": "202410060000"
 }

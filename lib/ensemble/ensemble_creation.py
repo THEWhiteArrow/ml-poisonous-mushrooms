@@ -32,6 +32,7 @@ class EnsembleSetupDto(TypedDict):
     id_column: List[str] | str
     limit_data_percentage: float
     processes: int
+    optimize: bool
 
 
 def log_system_usage(message=""):
@@ -49,6 +50,7 @@ def create_ensemble_model(
     limit_data_percentage: float,
     n_cv: int,
     processes: int,
+    optimize: bool,
     function_dto: EnsembleFunctionDto,
 ) -> Tuple[EnsembleModel, pd.DataFrame]:
 
@@ -80,31 +82,26 @@ def create_ensemble_model(
     logger.info("Engineering features")
     engineered_data = function_dto["engineer_features_func"](train).set_index("id")
 
-    logger.info("Running optimization")
-    final_ensemble_model, ensemble_result_df = optimize_ensemble(
-        ensemble_model=ensemble_model,
-        X=engineered_data,
-        y=engineered_data["class"],
-        n_cv=n_cv,
-        processes=processes,
-    )
+    if optimize:
+        logger.info("Running optimization")
+        final_ensemble_model, ensemble_result_df = optimize_ensemble(
+            ensemble_model=ensemble_model,
+            X=engineered_data,
+            y=engineered_data["class"],
+            n_cv=n_cv,
+            processes=processes,
+        )
+    else:
+        logger.info("Testing ensemble")
+        ensemble_result_df = test_ensemble(
+            ensemble_model=ensemble_model,
+            X=engineered_data,
+            y=engineered_data["class"],
+            n_cv=n_cv,
+        )
+        final_ensemble_model = ensemble_model
 
     return final_ensemble_model, ensemble_result_df
-
-
-def extract_names(mp_names_np: np.ndarray) -> List[str]:
-    names = []
-    current_name = bytearray()  # Use bytearray to build each name
-
-    for byte in mp_names_np:
-        if byte == 0:  # Check for null terminator
-            if current_name:  # If there's a name collected
-                names.append(current_name.decode())  # Decode and add to the list
-                current_name = bytearray()  # Reset for the next name
-        else:
-            current_name.append(byte)  # Add byte to the current name
-
-    return names
 
 
 def evaluate_combination(
@@ -204,6 +201,48 @@ def run_parralel_bitmap_processing(
         for combination_names, accuracy in mp_results
     ]
     return results
+
+
+def test_ensemble(
+    ensemble_model: EnsembleModel,
+    X: pd.DataFrame,
+    y: pd.Series,
+    n_cv: int,
+) -> pd.DataFrame:
+    logger.info("Testing ensemble model")
+    kfold = KFold(n_splits=n_cv)
+    results_list: List[Tuple[str, int, float]] = []
+
+    for cnt, (train_index, test_index) in enumerate(kfold.split(X)):
+        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+        y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+        logger.info(f"Testing fold {cnt + 1}")
+
+        ensemble_model.fit(X_train, y_train)
+        if ensemble_model.processing_pipelines is None:
+            raise ValueError("The ensemble model has not been fitted yet")
+
+        ensemble_model.predict(X_test)
+        if ensemble_model.predictions is None:
+            raise ValueError("The ensemble model has not been predicted yet")
+
+        for i in range(len(ensemble_model.models)):
+            y_pred = ensemble_model.predictions[i]
+            accuracy = (y_pred == y_test).sum() / len(y_test)
+            results_list.append((ensemble_model.combination_names[i], cnt, accuracy))
+
+        combination_name = "-".join(ensemble_model.combination_names)
+        y_pred = ensemble_model.predict(X_test)
+        accuracy = (y_pred == y_test).sum() / len(y_test)
+        results_list.append((combination_name, cnt, accuracy))
+
+    results_df = pd.DataFrame(
+        results_list,
+        columns=["combination", "fold", "score"],
+    )
+    results_df = results_df.groupby("combination")["score"].mean()
+
+    return results_df.to_frame()
 
 
 def optimize_ensemble(
