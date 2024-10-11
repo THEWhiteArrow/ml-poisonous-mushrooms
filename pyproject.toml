@@ -26,6 +26,7 @@ ipykernel = "^6.29.5"
 hyper = "poetry run python ml_poisonous_mushrooms/hyper_task.py"
 ensemble = "poetry run python ml_poisonous_mushrooms/ensemble_task.py"
 predict = "poetry run python ml_poisonous_mushrooms/prediction_task.py"
+debug = "poetry run python ml_poisonous_mushrooms/debug.py"
 
 [build-system]
 requires = ["poetry-core"]
