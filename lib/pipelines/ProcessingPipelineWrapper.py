@@ -6,7 +6,7 @@ from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.discriminant_analysis import StandardScaler
 from sklearn.impute import SimpleImputer
-from sklearn.pipeline import FeatureUnion, Pipeline, make_pipeline
+from sklearn.pipeline import FeatureUnion, FunctionTransformer, Pipeline, make_pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 
@@ -129,16 +129,7 @@ class ProcessingPipelineWrapper:
             steps.append(
                 (
                     "column_selector",
-                    ColumnTransformer(
-                        transformers=[
-                            (
-                                "column_selector",
-                                "passthrough",
-                                features_in,
-                            )
-                        ],
-                        remainder="drop",
-                    ),
+                    FunctionTransformer(lambda X: X[features_in], validate=False),
                 )
             )
 

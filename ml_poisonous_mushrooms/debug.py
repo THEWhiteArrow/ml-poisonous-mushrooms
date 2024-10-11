@@ -4,8 +4,10 @@ import json
 import numpy as np
 
 import pandas as pd
+from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.linear_model import RidgeClassifier
 from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import FeatureUnion, Pipeline
 
 from lib.features.FeatureManager import FeatureManager
 from lib.features.FeatureSet import FeatureSet
@@ -24,7 +26,7 @@ def debug_pipelines():
     train, test = load_data()
 
     logger.info("Engineering data...")
-    engineered_data = engineer_features(train.head(10000 * 1000)).set_index("id")
+    engineered_data = engineer_features(train.head(10 * 1000)).set_index("id")
 
     feature_manager = FeatureManager(
         feature_sets=[
@@ -78,17 +80,26 @@ def debug_pipelines():
     choosen_combination = all_model_combinations[13]
     logger.info(choosen_combination.name)
 
-    X = engineered_data.copy()[choosen_combination.feature_combination.features]
+    X = engineered_data.copy().drop(columns=["class"])
     y = engineered_data.copy()["class"]
 
     processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=True)
     model = choosen_combination.model
 
-    pipeline = processing_pipeline_wrapper.create_pipeline(model=model)
+    pipeline0 = processing_pipeline_wrapper.create_pipeline()
+    pipeline1 = processing_pipeline_wrapper.create_pipeline(
+        features_in=choosen_combination.feature_combination.features
+    )
+    pipeline2 = processing_pipeline_wrapper.create_pipeline(
+        model=model, features_in=choosen_combination.feature_combination.features
+    )
 
-    # processed_X = pipeline.fit_transform(X=X.copy())
+    processedX0 = pipeline0.fit_transform(
+        X[choosen_combination.feature_combination.features]
+    )
+    processedX1 = pipeline1.fit_transform(X)
 
-    scores = cross_val_score(estimator=pipeline, X=X, y=y, cv=5, scoring="accuracy")
+    scores = cross_val_score(estimator=pipeline2, X=X, y=y, cv=5, scoring="accuracy")
 
     logger.info(f"Accuracy scores: {scores}")
     logger.info(f"Avg: {scores.mean()}")
@@ -286,7 +297,7 @@ def measure_time_n_times(n: int) -> float:
 
 
 if __name__ == "__main__":
-    # debug_pipelines()
+    debug_pipelines()
     # debug_ensamble()
     # debug_enumerate()
     # debug_xgboost()

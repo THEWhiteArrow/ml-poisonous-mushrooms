@@ -67,16 +67,21 @@ def ensemble_v2(
     )
 
     train, test = load_data()
+    train = train.head(int(len(train) * 0.1))
     data = engineer_features(train)
 
     X = data.drop(columns=["class"])
     y = data["class"]
 
     logger.info("CV voting ensemble")
-    voting_scores = cross_val_score(ensemble_voting_model, X, y, cv=n_cv, n_jobs=-1)
+    voting_scores = cross_val_score(
+        ensemble_voting_model, X, y, cv=n_cv, n_jobs=-1, error_score="raise"
+    )
 
     logger.info("CV stacking ensemble")
-    stacking_scores = cross_val_score(ensemble_stacking_model, X, y, cv=n_cv, n_jobs=-1)
+    stacking_scores = cross_val_score(
+        ensemble_stacking_model, X, y, cv=n_cv, n_jobs=-1, error_score="raise"
+    )
 
     results = pd.DataFrame(
         {
