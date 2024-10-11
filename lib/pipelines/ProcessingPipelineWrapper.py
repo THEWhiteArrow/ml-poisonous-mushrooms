@@ -67,6 +67,7 @@ class ProcessingPipelineWrapper:
         self,
         model: Optional[BaseEstimator] = None,
         allow_strings: Optional[bool] = None,
+        features_in: Optional[List[str]] = None,
     ) -> Pipeline:
         """A function that is to automate the process of processing the data so that it is ready to be trained on made the prediction.
 
@@ -84,10 +85,8 @@ class ProcessingPipelineWrapper:
             transformers=[
                 (
                     "numerical_pipeline",
-                    make_pipeline(SimpleImputer(
-                        strategy="mean"), StandardScaler()),
-                    make_column_selector(
-                        dtype_include=np.number),  # type: ignore
+                    make_pipeline(SimpleImputer(strategy="mean"), StandardScaler()),
+                    make_column_selector(dtype_include=np.number),  # type: ignore
                 )
             ],
             remainder="drop",
@@ -123,7 +122,27 @@ class ProcessingPipelineWrapper:
         # --- NOTE ---
         # Create steps for the pipeline.
         # If model is not None, then add the model to the pipeline.
-        steps: List[Tuple[str, BaseEstimator]] = [
+
+        steps: List[Tuple[str, BaseEstimator]] = []
+
+        if features_in is not None:
+            steps.append(
+                (
+                    "column_selector",
+                    ColumnTransformer(
+                        transformers=[
+                            (
+                                "column_selector",
+                                "passthrough",
+                                features_in,
+                            )
+                        ],
+                        remainder="drop",
+                    ),
+                )
+            )
+
+        steps.append(
             (
                 "feature_union",
                 FeatureUnion(
@@ -133,7 +152,7 @@ class ProcessingPipelineWrapper:
                     ]
                 ),
             )
-        ]
+        )
         if model is not None:
             steps.append(("model", model))
 
