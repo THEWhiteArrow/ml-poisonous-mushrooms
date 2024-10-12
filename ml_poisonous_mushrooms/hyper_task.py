@@ -1,6 +1,6 @@
 import multiprocessing as mp
 
-from lib.optymization.hyper_setup import hyper_opt, HyperSetupDto, HyperFunctionDto
+from lib.optymization.hyper_setup import HyperSetupDto, HyperFunctionDto, setup_hyper
 from lib.logger import setup_logger
 from ml_poisonous_mushrooms.data_load.data_load import load_data
 from ml_poisonous_mushrooms.engineering.engineering_combinations import (
@@ -38,6 +38,6 @@ if __name__ == "__main__":
         study_prefix=PrefixManager.STUDY_PREFIX.value,
     )
 
-    hyper_opt(setup_dto=setup_dto, function_dto=function_dto)
+    setup_hyper(setup_dto=setup_dto, function_dto=function_dto)
 
     logger.info("Finished hyper_opt.py")

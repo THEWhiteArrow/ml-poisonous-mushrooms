@@ -72,7 +72,7 @@ def save_hyper_result(
 
     try:
         results_path = Path(
-            f"{output_dir_path}/{hyper_opt_prefix}{model_run}/{model_combination.name}_{suffix}.pkl"
+            f"{output_dir_path}/{hyper_opt_prefix}{model_run}/{model_combination.name}{suffix}.pkl"
         )
 
         pickle.dump(result, open(results_path, "wb"))

@@ -46,20 +46,14 @@
 			"type": "debugpy",
 			"request": "launch",
 			"program": "${workspaceFolder}/ml_poisonous_mushrooms/debug.py",
-			"console": "internalConsole"
+			"console": "internalConsole",
+			"justMyCode": false
 		},
 		{
 			"name": "ensemble_task.py",
 			"type": "debugpy",
 			"request": "launch",
 			"program": "${workspaceFolder}/ml_poisonous_mushrooms/ensemble_task.py",
-			"console": "internalConsole"
-		},
-		{
-			"name": "ensemble_task2.py",
-			"type": "debugpy",
-			"request": "launch",
-			"program": "${workspaceFolder}/ml_poisonous_mushrooms/ensemble_task2.py",
 			"console": "internalConsole"
 		},
 		{

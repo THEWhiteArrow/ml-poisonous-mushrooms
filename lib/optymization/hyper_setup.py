@@ -35,7 +35,7 @@ class HyperFunctionDto(TypedDict):
     create_combinations_func: Callable[[Optional[int]], List[HyperOptCombination]]
 
 
-def hyper_opt(setup_dto: HyperSetupDto, function_dto: HyperFunctionDto):
+def setup_hyper(setup_dto: HyperSetupDto, function_dto: HyperFunctionDto):
     if setup_dto["model_run"] is None:
         model_run = dt.datetime.now().strftime("%Y%m%d%H%M")
     else:
@@ -52,8 +52,7 @@ def hyper_opt(setup_dto: HyperSetupDto, function_dto: HyperFunctionDto):
 
     logger.info(f"Starting hyper opt for run {setup_dto['model_run']}...")
     logger.info(f"Using {setup_dto['processes']} processes.")
-    logger.info(
-        f"Using {setup_dto['n_optimization_trials']} optimization trials.")
+    logger.info(f"Using {setup_dto['n_optimization_trials']} optimization trials.")
     logger.info(f"Using {setup_dto['n_cv']} cross validation.")
     logger.info(f"Using {setup_dto['n_patience']} patience.")
     logger.info(
@@ -77,7 +76,9 @@ def hyper_opt(setup_dto: HyperSetupDto, function_dto: HyperFunctionDto):
     if setup_dto["id_column"] is not None:
         engineered_data = engineered_data.set_index(setup_dto["id_column"])
 
-    all_model_combinations = function_dto["create_combinations_func"](setup_dto["processes"])
+    all_model_combinations = function_dto["create_combinations_func"](
+        setup_dto["processes"]
+    )
     logger.info(f"Created {len(all_model_combinations)} combinations.")
 
     logger.info("Checking for existing models...")
