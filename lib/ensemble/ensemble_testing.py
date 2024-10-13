@@ -187,6 +187,9 @@ def test_ensemble(
 
         for i in range(len(ensemble_model.estimators)):
             y_pred = ensemble_model.predictions[i]
+            if isinstance(y_pred, pd.DataFrame):
+                y_pred = y_pred.idxmax(axis=1).astype(int)
+
             accuracy = (y_pred == y_test).sum() / len(y_test)
             results_list.append((ensemble_model.combination_names[i], cnt, accuracy))  # type: ignore
 

@@ -79,6 +79,7 @@ def setup_ensemble_v2(
         task=setup_dto.task,
         weights=weights,
         prediction_method=setup_dto.prediction_method,
+        meta_model=setup_dto.meta_model,
     )
 
     logger.info("Engineering features...")
@@ -90,6 +91,7 @@ def setup_ensemble_v2(
         setup_dto.optimize
         and setup_dto.task == "classification"
         and setup_dto.prediction_method == "predict"
+        and setup_dto.meta_model is None
     ):
         logger.info("Optimizing ensemble model...")
         best_combination_names, results_df = optimize_ensemble(
@@ -104,7 +106,8 @@ def setup_ensemble_v2(
     os.makedirs(setup_dto.output_dir_path, exist_ok=True)
     results_df.to_csv(
         setup_dto.output_dir_path
-        / f"{setup_dto.ensemble_prefix}{setup_dto.model_run}.csv",
+        / f"{setup_dto.ensemble_prefix}"
+        / f"ensemble_results_{setup_dto.model_run}.csv",
         index=True,
     )
 
@@ -124,6 +127,7 @@ def setup_ensemble_v2(
         task=setup_dto.task,
         weights=weights,
         prediction_method=setup_dto.prediction_method,
+        meta_model=setup_dto.meta_model,
     )
 
     logger.info("Saving final ensemble model...")
@@ -132,7 +136,8 @@ def setup_ensemble_v2(
         final_ensemble_model,
         open(
             setup_dto.output_dir_path
-            / f"{setup_dto.ensemble_prefix}{setup_dto.model_run}.ensemble",
+            / f"{setup_dto.ensemble_prefix}"
+            / f"ensemble_model_{setup_dto.model_run}.ensemble",
             "wb",
         ),
     )

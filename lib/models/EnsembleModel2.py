@@ -80,7 +80,7 @@ class EnsembleModel2(BaseEstimator, TransformerMixin):
                     logger.info(f"Predicting model : {self.combination_names[j]}")
                     all_predictions_out_of_fold.loc[
                         X_test.index, self.combination_names[j]
-                    ] = pd.Series(estimator.predict(X_test))
+                    ] = pd.Series(estimator.predict(X_test), index=X_test.index)
 
             logger.info(
                 "Completed fitting all models and making predictions on out of fold data"
@@ -94,8 +94,8 @@ class EnsembleModel2(BaseEstimator, TransformerMixin):
 
         if self.prediction_method == "predict":
             self.predictions = [
-                pd.Series(estimator.predict(X), name="prediction", index=X.index)
-                for estimator, _ in zip(self.estimators, self.combination_names)
+                pd.Series(estimator.predict(X), name=name, index=X.index)
+                for estimator, name in zip(self.estimators, self.combination_names)
             ]
         elif self.prediction_method == "predict_proba":
             self.predictions = [
@@ -114,11 +114,12 @@ class EnsembleModel2(BaseEstimator, TransformerMixin):
         if self.task == "classification":
 
             if self.meta_model is not None:
-                final_pred_raw = self.meta_model.predict(
-                    pd.concat([X, *self.predictions]), axis=1
-                )
+                meta_X = pd.concat([X, *self.predictions], axis=1)
+                final_pred_raw = self.meta_model.predict(meta_X)
 
-                final_pred = pd.Series(final_pred_raw, index=X.index, name="prediction")
+                final_pred = pd.Series(
+                    final_pred_raw, index=meta_X.index, name="prediction"
+                )
 
             else:
                 final_pred = self._combine_weighted_voting(
@@ -143,7 +144,8 @@ class EnsembleModel2(BaseEstimator, TransformerMixin):
         data = pd.concat(
             [
                 (
-                    prediction.to_frame()
+                    prediction.rename("prediction")
+                    .to_frame()
                     .assign(probability=weights[i])
                     .pivot(columns="prediction", values="probability")
                     .fillna(0.0)
@@ -168,7 +170,7 @@ class EnsembleModel2(BaseEstimator, TransformerMixin):
         if prediction_proba_target is not None:
             final_vote = votes[prediction_proba_target]
         else:
-            final_vote = votes.idxmax(axis=1)
+            final_vote = votes.idxmax(axis=1).astype(int)
 
         final_vote.name = "prediction"
 

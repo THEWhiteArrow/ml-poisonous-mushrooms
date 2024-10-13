@@ -87,6 +87,25 @@ def convert_to_dataframe(X: pd.DataFrame | np.ndarray) -> pd.DataFrame:
         return new_X
 
 
+def filter_columns(
+    X: pd.DataFrame, columns: Optional[List[str]] = None
+) -> pd.DataFrame:
+    """A function that filters the columns of the input data.
+
+    Args:
+        X (pd.DataFrame): The input data.
+        columns (Optional[List[str]], optional): The columns that should be kept. Defaults to None.
+
+    Returns:
+        pd.DataFrame: The input data with only the specified columns.
+    """
+
+    if columns is not None:
+        return X[columns]
+
+    return X
+
+
 def create_pipeline(
     model: Optional[BaseEstimator] = None,
     features_in: Optional[List[str]] = None,
@@ -141,7 +160,8 @@ def create_pipeline(
         (
             "column_selector",
             FunctionTransformer(
-                lambda X: X if features_in is None else X[features_in],
+                filter_columns,
+                kw_args={"columns": features_in},
                 validate=False,
             ),
         ),
