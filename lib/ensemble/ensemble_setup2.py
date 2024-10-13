@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import os
 from pathlib import Path
+import datetime as dt
 import pickle
 from typing import List, Literal, Optional, Callable, Tuple
 
@@ -30,6 +31,7 @@ class EnsembleSetupDto2:
     limit_data_percentage: float
     selected_model_names: List[str]
     optimize: bool
+    test: bool
     score_direction: Literal["maximize", "minimize", "equal"]
     target_column: str
     id_column: List[str] | str
@@ -46,7 +48,8 @@ class EnsembleSetupDto2:
 def setup_ensemble_v2(
     setup_dto: EnsembleSetupDto2, function_dto: EnsembleFunctionDto2
 ) -> None:
-
+    if setup_dto.model_run is None:
+        setup_dto.model_run = dt.datetime.now().strftime("%Y%m%d%H%M")
     logger.info(f"Starting ensemble setup v2 | model_run: {setup_dto.model_run}")
 
     logger.info("Retriving hyperopt models...")
@@ -81,7 +84,6 @@ def setup_ensemble_v2(
         prediction_method=setup_dto.prediction_method,
         meta_model=setup_dto.meta_model,
     )
-
     logger.info("Engineering features...")
     data = function_dto.engineer_features_func(train).set_index(setup_dto.id_column)
     X = data.drop(setup_dto.target_column, axis=1)
@@ -97,19 +99,24 @@ def setup_ensemble_v2(
         best_combination_names, results_df = optimize_ensemble(
             ensemble_model, X, y, setup_dto.n_cv, setup_dto.processes
         )
-    else:
-        logger.info("Just testing ensemble model...")
+    elif setup_dto.test:
+        logger.info("Testing ensemble model...")
         best_combination_names = setup_dto.selected_model_names
         results_df = test_ensemble(ensemble_model, X, y, setup_dto.n_cv)
+    else:
+        logger.info("No optimization nor testing...")
+        results_df = None
+        best_combination_names = setup_dto.selected_model_names
 
-    logger.info("Saving csv with results...")
-    os.makedirs(setup_dto.output_dir_path, exist_ok=True)
-    results_df.to_csv(
-        setup_dto.output_dir_path
-        / f"{setup_dto.ensemble_prefix}"
-        / f"ensemble_results_{setup_dto.model_run}.csv",
-        index=True,
-    )
+    if results_df is not None:
+        logger.info("Saving csv with results...")
+        os.makedirs(setup_dto.output_dir_path, exist_ok=True)
+        results_df.to_csv(
+            setup_dto.output_dir_path
+            / f"{setup_dto.ensemble_prefix}"
+            / f"ensemble_results_{setup_dto.model_run}.csv",
+            index=True,
+        )
 
     logger.info("Creating final ensemble model...")
     final_ensemble_model = EnsembleModel2(

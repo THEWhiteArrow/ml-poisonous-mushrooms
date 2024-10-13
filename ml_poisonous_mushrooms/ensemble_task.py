@@ -34,12 +34,12 @@ if __name__ == "__main__":
     )
 
     setup_dto = EnsembleSetupDto2(
-        model_run="testing",
-        meta_model=None,
+        model_run=None,
         hyper_model_run="202410060000",
+        meta_model=None,
         selected_model_names=selected_model_names,
-        limit_data_percentage=0.01,
-        optimize=True,
+        limit_data_percentage=1.0,
+        optimize=False,
         target_column="class",
         score_direction="maximize",
         id_column="id",
