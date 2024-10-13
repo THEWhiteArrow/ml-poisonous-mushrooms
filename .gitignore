@@ -11,8 +11,8 @@ catboost_info
 *.log
 
 # Hyper opt models and studies
-# results/hyper_*/*.pkl
-# results/study_*/*.db
+results/hyper_*/*.pkl
+results/study_*/*.db
 
 # Temporary files
 temp/*.csv
