@@ -66,7 +66,9 @@ def create_combinations(processes: Optional[int] = None) -> List[HyperOptCombina
 
     hyper_manager = HyperOptManager(
         feature_manager=feature_manager,
-        models=model_manager.get_models(use_additional=[], processes=processes),
+        models=model_manager.get_models(
+            use_additional=["adaboost"], processes=processes
+        ),
     )
 
     return hyper_manager.get_model_combinations()

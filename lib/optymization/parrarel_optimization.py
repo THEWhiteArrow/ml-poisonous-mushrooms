@@ -51,6 +51,7 @@ def run_parallel_optimization(
     # 3. If the model can use multiple cores, then set only one model to run at the same time.
 
     parallel_model_prefixes = ["ridge"]
+    omit_mulit_sufixes = ["top_0", "top_1", "top_2"]
 
     sequential_model_combinations = [
         model_combination
@@ -59,7 +60,10 @@ def run_parallel_optimization(
             not model_combination.name.lower().startswith(prefix.lower())
             for prefix in parallel_model_prefixes
         )
-        and model_combination.name not in omit_names
+        and all(
+            f"{model_combination.name}{omit_sufix}" not in omit_names
+            for omit_sufix in omit_mulit_sufixes
+        )
     ]
 
     parallel_model_combinations = [
@@ -69,17 +73,18 @@ def run_parallel_optimization(
             model_combination.name.lower().startswith(prefix.lower())
             for prefix in parallel_model_prefixes
         )
-        and model_combination.name not in omit_names
+        and all(
+            f"{model_combination.name}{omit_sufix}" not in omit_names
+            for omit_sufix in omit_mulit_sufixes
+        )
     ]
     logger.info(
-        "Will be running parallel optimization for models: " +
-        json.dumps(
-            [model.name for model in parallel_model_combinations], indent=4)
+        "Will be running parallel optimization for models: "
+        + json.dumps([model.name for model in parallel_model_combinations], indent=4)
     )
     logger.info(
-        "Will be running sequential optimization for models: " +
-        json.dumps(
-            [model.name for model in sequential_model_combinations], indent=4)
+        "Will be running sequential optimization for models: "
+        + json.dumps([model.name for model in sequential_model_combinations], indent=4)
     )
     # Set up multiprocessing pool
     with mp.Pool(processes=processes, initializer=init_worker) as pool:

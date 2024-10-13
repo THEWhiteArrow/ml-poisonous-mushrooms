@@ -7,7 +7,7 @@ from sklearn.model_selection import cross_val_score
 
 from lib.models.HyperOptCombination import HyperOptCombination
 from lib.optymization.TrialParamWrapper import TrialParamWrapper
-from lib.pipelines.ProcessingPipelineWrapper import ProcessingPipelineWrapper
+from lib.pipelines.ProcessingPipelineWrapper import create_pipeline
 
 
 def create_objective(
@@ -17,7 +17,6 @@ def create_objective(
     n_cv: int,
 ) -> Callable[[optuna.Trial], float]:
 
-    processing_pipeline_wrapper = ProcessingPipelineWrapper(pandas_output=False)
     model = model_combination.model
 
     def objective(
@@ -31,7 +30,9 @@ def create_objective(
 
         model.set_params(**params)
 
-        pipeline = processing_pipeline_wrapper.create_pipeline(model=model)
+        pipeline = create_pipeline(
+            model=model, features_in=model_combination.feature_combination.features
+        )
 
         scores = cross_val_score(
             estimator=pipeline,

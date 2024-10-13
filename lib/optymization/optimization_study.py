@@ -103,7 +103,7 @@ def optimize_model_and_save(
     combination_name = model_combination.name
     logger.info(f"Optimizing model combination {i}: {combination_name}")
 
-    X = X.copy()[model_combination.feature_combination.features]
+    X = X.copy()
     y = y.copy()
 
     os.makedirs(output_dir_path / f"{study_prefix}{model_run}", exist_ok=True)

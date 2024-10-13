@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List, Literal, Optional
 
 from sklearn.base import BaseEstimator
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.linear_model import RidgeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -33,6 +33,10 @@ class ModelManager:
             ]
 
             additional_models = [
+                AdaBoostClassifier(
+                    estimator=LGBMClassifier(n_jobs=job_count, verbosity=-1),
+                    random_state=1000000007,
+                ),
                 SVC(random_state=1000000007),
                 RandomForestClassifier(random_state=1000000007, n_jobs=job_count),
                 KNeighborsClassifier(n_jobs=job_count, metric="cosine"),

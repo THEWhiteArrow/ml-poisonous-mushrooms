@@ -115,6 +115,12 @@ class TrialParamWrapper:
             "od_wait": trial.suggest_int("od_wait", 10, 50),
         }
 
+    def _get_adaboost_params(self, trial: optuna.Trial) -> Dict[str, Any]:
+        return {
+            "n_estimators": trial.suggest_int("n_estimators", 50, 500),
+            "learning_rate": trial.suggest_float("learning_rate", 1e-3, 1, log=True),
+        }
+
     def get_params(self, model_name: str, trial: optuna.Trial) -> Dict[str, Any]:
         if "ridge" in model_name.lower():
             return self._get_ridge_params(trial)
@@ -136,6 +142,9 @@ class TrialParamWrapper:
 
         elif "catboost" in model_name.lower():
             return self._get_catboost_params(trial)
+
+        elif "adaboost" in model_name.lower():
+            return self._get_adaboost_params(trial)
 
         else:
             raise ValueError(f"Model {model_name} not supported.")
