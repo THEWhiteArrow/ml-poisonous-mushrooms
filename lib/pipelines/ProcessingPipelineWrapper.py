@@ -36,6 +36,7 @@ def are_strings_allowed(
         "lgb",
         "xgb",
         "catboost",
+        "adaboost",
     ]
 
     # --- NOTE ---
