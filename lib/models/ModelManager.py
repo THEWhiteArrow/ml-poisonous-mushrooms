@@ -34,7 +34,6 @@ class ModelManager:
 
             additional_models = [
                 AdaBoostClassifier(
-                    estimator=LGBMClassifier(n_jobs=job_count, verbosity=-1),
                     random_state=1000000007,
                     algorithm="SAMME",
                 ),
