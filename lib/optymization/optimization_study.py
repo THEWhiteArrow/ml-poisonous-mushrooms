@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 import gc
 
+# import multiprocessing as mp
+
 import optuna
 import pandas as pd
 import pickle
@@ -136,6 +138,7 @@ def optimize_model_and_save(
         func=create_objective_func(X, y, model_combination, n_cv),
         n_trials=n_optimization_trials,
         callbacks=[early_stopping],  # type: ignore
+        # n_jobs=mp.cpu_count(),
     )
 
     trials = study.get_trials()
