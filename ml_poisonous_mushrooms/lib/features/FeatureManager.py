@@ -3,9 +3,9 @@ from typing import List
 
 import pandas as pd
 
-from lib.features.FeatureCombination import FeatureCombination
-from lib.features.FeatureSet import FeatureSet
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.features.FeatureCombination import FeatureCombination
+from ml_poisonous_mushrooms.lib.features.FeatureSet import FeatureSet
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -38,15 +38,13 @@ class FeatureManager:
         optioanl_feature_sets: List[FeatureSet] = [
             feat_set for feat_set in self.feature_sets if feat_set.is_optional is True
         ]
-        logger.info(
-            f"Detected {len(optioanl_feature_sets)} optional feature sets.")
-        logger.info(
-            f"Detected {len(mandatory_feature_sets)} mandatory feature sets.")
+        logger.info(f"Detected {len(optioanl_feature_sets)} optional feature sets.")
+        logger.info(f"Detected {len(mandatory_feature_sets)} mandatory feature sets.")
 
         if len(optioanl_feature_sets) > 10:
             logger.warning(
-                "The number of optional feature sets is high: " +
-                f"{len(optioanl_feature_sets)}"
+                "The number of optional feature sets is high: "
+                + f"{len(optioanl_feature_sets)}"
             )
 
         bitmap = 2 ** len(optioanl_feature_sets) - 1
@@ -66,11 +64,11 @@ class FeatureManager:
                     combination_features.extend(optional_set.features)
 
             possible_combinations.append(
-                FeatureCombination(name=combination_name,
-                                   features=combination_features)
+                FeatureCombination(name=combination_name, features=combination_features)
             )
 
         logger.info(
-            f"Generated {len(possible_combinations)} possible feature combinations.")
+            f"Generated {len(possible_combinations)} possible feature combinations."
+        )
 
         return possible_combinations

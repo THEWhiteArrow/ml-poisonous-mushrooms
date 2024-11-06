@@ -3,8 +3,8 @@ from pathlib import Path
 import pickle
 from typing import List, Optional
 
-from lib.logger import setup_logger
-from lib.models.HyperOptResultDict import HyperOptResultDict
+from ml_poisonous_mushrooms.lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.models.HyperOptResultDict import HyperOptResultDict
 
 
 logger = setup_logger(__name__)

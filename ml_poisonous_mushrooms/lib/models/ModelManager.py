@@ -33,7 +33,10 @@ class ModelManager:
             ]
 
             additional_models = [
-                AdaBoostClassifier(algorithm="SAMME"),
+                AdaBoostClassifier(
+                    algorithm="SAMME",
+                    estimator=LGBMClassifier(n_jobs=job_count, verbosity=-1),
+                ),
                 SVC(),
                 RandomForestClassifier(n_jobs=job_count),
                 KNeighborsClassifier(n_jobs=job_count, metric="cosine"),

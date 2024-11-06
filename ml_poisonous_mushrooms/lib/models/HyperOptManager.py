@@ -3,9 +3,9 @@ from typing import List
 
 from sklearn.base import BaseEstimator
 
-from lib.features.FeatureCombination import FeatureCombination
-from lib.features.FeatureManager import FeatureManager
-from lib.models.HyperOptCombination import HyperOptCombination
+from ml_poisonous_mushrooms.lib.features.FeatureCombination import FeatureCombination
+from ml_poisonous_mushrooms.lib.features.FeatureManager import FeatureManager
+from ml_poisonous_mushrooms.lib.models.HyperOptCombination import HyperOptCombination
 
 
 @dataclass
@@ -20,8 +20,7 @@ class HyperOptManager:
 
         hyper_opt_model_combinations: List[HyperOptCombination] = [
             HyperOptCombination(
-                name=f"{model.__class__.__name__}"
-                + f"_{combination.name}",
+                name=f"{model.__class__.__name__}" + f"_{combination.name}",
                 model=model,
                 feature_combination=combination,
             )

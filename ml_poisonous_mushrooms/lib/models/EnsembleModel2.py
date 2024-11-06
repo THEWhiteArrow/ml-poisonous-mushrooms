@@ -7,8 +7,10 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import KFold
 from sklearn.pipeline import Pipeline
 
-from lib.logger import setup_logger
-from lib.pipelines.ProcessingPipelineWrapper import create_pipeline
+from ml_poisonous_mushrooms.lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.pipelines.ProcessingPipelineWrapper import (
+    create_pipeline,
+)
 
 logger = setup_logger(__name__)
 

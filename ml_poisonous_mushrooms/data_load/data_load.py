@@ -4,8 +4,8 @@ from typing import Tuple, cast
 import pandas as pd
 
 from data import DATA_DIR_PATH
-from lib.ensemble.EnsembleConfigDict import EnsembleConfigDict
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.ensemble.EnsembleConfigDict import EnsembleConfigDict
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 
 
 logger = setup_logger(__name__)

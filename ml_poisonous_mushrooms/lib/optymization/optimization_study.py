@@ -9,10 +9,12 @@ import optuna
 import pandas as pd
 import pickle
 
-from lib.models.HyperOptCombination import HyperOptCombination
-from lib.models.HyperOptResultDict import HyperOptResultDict
-from lib.optymization.EarlyStoppingCallback import EarlyStoppingCallback
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.models.HyperOptCombination import HyperOptCombination
+from ml_poisonous_mushrooms.lib.models.HyperOptResultDict import HyperOptResultDict
+from ml_poisonous_mushrooms.lib.optymization.EarlyStoppingCallback import (
+    EarlyStoppingCallback,
+)
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 
 
 logger = setup_logger(__name__)

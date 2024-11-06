@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from sklearn.base import BaseEstimator
 
-from lib.features.FeatureCombination import FeatureCombination
+from ml_poisonous_mushrooms.lib.features.FeatureCombination import FeatureCombination
 
 
 @dataclass

@@ -7,9 +7,11 @@ import multiprocessing as mp
 import optuna
 import pandas as pd
 
-from lib.models.HyperOptCombination import HyperOptCombination
-from lib.optymization.optimization_study import optimize_model_and_save
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.models.HyperOptCombination import HyperOptCombination
+from ml_poisonous_mushrooms.lib.optymization.optimization_study import (
+    optimize_model_and_save,
+)
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 

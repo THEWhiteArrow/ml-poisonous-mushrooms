@@ -8,8 +8,8 @@ import pandas as pd
 from sklearn.model_selection import KFold
 import numpy as np
 
-from lib.models.EnsembleModel2 import EnsembleModel2
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.models.EnsembleModel2 import EnsembleModel2
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 

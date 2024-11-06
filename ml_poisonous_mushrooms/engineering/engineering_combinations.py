@@ -1,9 +1,9 @@
 from typing import List, Optional
-from lib.features.FeatureManager import FeatureManager
-from lib.features.FeatureSet import FeatureSet
-from lib.models.HyperOptCombination import HyperOptCombination
-from lib.models.HyperOptManager import HyperOptManager
-from lib.models.ModelManager import ModelManager
+from ml_poisonous_mushrooms.lib.features.FeatureManager import FeatureManager
+from ml_poisonous_mushrooms.lib.features.FeatureSet import FeatureSet
+from ml_poisonous_mushrooms.lib.models.HyperOptCombination import HyperOptCombination
+from ml_poisonous_mushrooms.lib.models.HyperOptManager import HyperOptManager
+from ml_poisonous_mushrooms.lib.models.ModelManager import ModelManager
 
 
 def create_combinations(processes: Optional[int] = None) -> List[HyperOptCombination]:

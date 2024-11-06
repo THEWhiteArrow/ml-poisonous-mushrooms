@@ -13,19 +13,19 @@
 # from sklearn.neighbors import KNeighborsClassifier
 # from sklearn.pipeline import Pipeline
 
-# from lib.features.FeatureManager import FeatureManager
-# from lib.features.FeatureSet import FeatureSet
-# from lib.models.HyperOptManager import HyperOptManager
-# from lib.models.HyperOptResultDict import HyperOptResultDict
-# from lib.models.ModelManager import ModelManager
-# from lib.pipelines.ProcessingPipelineWrapper import (
+# from ml_poisonous_mushrooms.lib.features.FeatureManager import FeatureManager
+# from ml_poisonous_mushrooms.lib.features.FeatureSet import FeatureSet
+# from ml_poisonous_mushrooms.lib.models.HyperOptManager import HyperOptManager
+# from ml_poisonous_mushrooms.lib.models.HyperOptResultDict import HyperOptResultDict
+# from ml_poisonous_mushrooms.lib.models.ModelManager import ModelManager
+# from ml_poisonous_mushrooms.lib.pipelines.ProcessingPipelineWrapper import (
 #     create_pipeline,
 # )
 # from ml_poisonous_mushrooms.data_load.data_load import load_data
 # from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
 # from ml_poisonous_mushrooms.utils.PathManager import PathManager
 
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 

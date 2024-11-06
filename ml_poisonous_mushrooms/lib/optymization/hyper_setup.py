@@ -4,11 +4,15 @@ from typing import Callable, List, Optional, Tuple, TypedDict
 
 import pandas as pd
 
-from lib.logger import setup_logger
-from lib.models.HyperOptCombination import HyperOptCombination
-from lib.optymization.optimization_study import CREATE_OBJECTIVE_TYPE
-from lib.optymization.parrarel_optimization import run_parallel_optimization
-from lib.utils.read_existing_models import read_existing_models
+from ml_poisonous_mushrooms.lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.models.HyperOptCombination import HyperOptCombination
+from ml_poisonous_mushrooms.lib.optymization.optimization_study import (
+    CREATE_OBJECTIVE_TYPE,
+)
+from ml_poisonous_mushrooms.lib.optymization.parrarel_optimization import (
+    run_parallel_optimization,
+)
+from ml_poisonous_mushrooms.lib.utils.read_existing_models import read_existing_models
 
 logger = setup_logger(__name__)
 

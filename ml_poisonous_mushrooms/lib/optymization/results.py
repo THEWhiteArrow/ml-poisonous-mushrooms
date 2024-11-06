@@ -4,8 +4,8 @@ from typing import List, cast
 
 import optuna
 
-from lib.models.HyperOptResultDict import HyperOptResultDict
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.models.HyperOptResultDict import HyperOptResultDict
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 

@@ -1,5 +1,5 @@
-from lib.logger import setup_logger
-from lib.optymization.analysis_setup import setup_analysis
+from ml_poisonous_mushrooms.lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.optymization.analysis_setup import setup_analysis
 from ml_poisonous_mushrooms.utils.PrefixManager import PrefixManager
 from ml_poisonous_mushrooms.utils.PathManager import PathManager
 

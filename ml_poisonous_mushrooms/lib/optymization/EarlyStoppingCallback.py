@@ -3,7 +3,7 @@ from typing import Optional
 
 import optuna
 
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 
 
 logger = setup_logger(__name__)

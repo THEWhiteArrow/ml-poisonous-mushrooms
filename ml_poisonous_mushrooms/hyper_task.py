@@ -1,7 +1,11 @@
 import multiprocessing as mp
 
-from lib.optymization.hyper_setup import HyperSetupDto, HyperFunctionDto, setup_hyper
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.optymization.hyper_setup import (
+    HyperSetupDto,
+    HyperFunctionDto,
+    setup_hyper,
+)
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 from ml_poisonous_mushrooms.data_load.data_load import load_data
 from ml_poisonous_mushrooms.engineering.engineering_combinations import (
     create_combinations,

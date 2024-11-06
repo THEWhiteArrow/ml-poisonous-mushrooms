@@ -2,8 +2,11 @@ from pathlib import Path
 
 import optuna
 import pandas as pd
-from lib.logger import setup_logger
-from lib.optymization.results import load_hyper_opt_results, load_hyper_opt_studies
+from ml_poisonous_mushrooms.lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.optymization.results import (
+    load_hyper_opt_results,
+    load_hyper_opt_studies,
+)
 
 
 logger = setup_logger(__name__)

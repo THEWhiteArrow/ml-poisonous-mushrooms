@@ -5,8 +5,8 @@ from typing import Callable, List, Tuple, cast
 
 import pandas as pd
 
-from lib.logger import setup_logger
-from lib.models.EnsembleModel2 import EnsembleModel2
+from ml_poisonous_mushrooms.lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.models.EnsembleModel2 import EnsembleModel2
 
 
 @dataclass

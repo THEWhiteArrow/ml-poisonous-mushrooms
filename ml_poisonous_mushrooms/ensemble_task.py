@@ -1,12 +1,12 @@
 import multiprocessing as mp
 from typing import List
 
-from lib.ensemble.ensemble_setup2 import (
+from ml_poisonous_mushrooms.lib.ensemble.ensemble_setup2 import (
     EnsembleFunctionDto2,
     EnsembleSetupDto2,
     setup_ensemble_v2,
 )
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 from ml_poisonous_mushrooms.data_load.data_load import load_data
 from ml_poisonous_mushrooms.engineering.engineering_features import engineer_features
 from ml_poisonous_mushrooms.utils.PrefixManager import PrefixManager

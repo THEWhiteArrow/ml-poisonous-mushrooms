@@ -1,5 +1,5 @@
-from lib.logger import setup_logger
-from lib.prediction.prediction_setup import (
+from ml_poisonous_mushrooms.lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.prediction.prediction_setup import (
     PredictionFunctionDto,
     PredictionSetupDto,
     setup_prediction,

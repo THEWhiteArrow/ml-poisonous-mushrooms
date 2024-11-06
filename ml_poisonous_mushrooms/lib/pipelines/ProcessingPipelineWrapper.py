@@ -10,7 +10,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import FeatureUnion, FunctionTransformer, Pipeline, make_pipeline
 from sklearn.preprocessing import OneHotEncoder
 
-from lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 

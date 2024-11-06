@@ -8,10 +8,13 @@ from typing import List, Literal, Optional, Callable, Tuple
 import pandas as pd
 from sklearn.base import BaseEstimator
 
-from lib.ensemble.ensemble_testing import optimize_ensemble, test_ensemble
-from lib.logger import setup_logger
-from lib.models.EnsembleModel2 import EnsembleModel2
-from lib.utils.read_existing_models import read_hyper_results
+from ml_poisonous_mushrooms.lib.ensemble.ensemble_testing import (
+    optimize_ensemble,
+    test_ensemble,
+)
+from ml_poisonous_mushrooms.lib.logger import setup_logger
+from ml_poisonous_mushrooms.lib.models.EnsembleModel2 import EnsembleModel2
+from ml_poisonous_mushrooms.lib.utils.read_existing_models import read_hyper_results
 
 
 logger = setup_logger(__name__)

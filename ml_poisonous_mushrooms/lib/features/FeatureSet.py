@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from lib.features.FeatureCombination import FeatureCombination
+from ml_poisonous_mushrooms.lib.features.FeatureCombination import FeatureCombination
 
 
 @dataclass

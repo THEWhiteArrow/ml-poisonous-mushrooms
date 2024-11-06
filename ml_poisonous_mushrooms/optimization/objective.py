@@ -5,9 +5,11 @@ import optuna
 import pandas as pd
 from sklearn.model_selection import cross_val_score
 
-from lib.models.HyperOptCombination import HyperOptCombination
-from lib.optymization.TrialParamWrapper import TrialParamWrapper
-from lib.pipelines.ProcessingPipelineWrapper import create_pipeline
+from ml_poisonous_mushrooms.lib.models.HyperOptCombination import HyperOptCombination
+from ml_poisonous_mushrooms.lib.optymization.TrialParamWrapper import TrialParamWrapper
+from ml_poisonous_mushrooms.lib.pipelines.ProcessingPipelineWrapper import (
+    create_pipeline,
+)
 
 
 def create_objective(
